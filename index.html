@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monkey’s Jungle Quest — All Games</title>
+<link rel="stylesheet" href="monkey_movement.css">
+<style>
+:root{
+  --bg:#fffef8; --leaf:#8ae68a; --deep:#2c7a3f; --accent:#ffd369; --ink:#223; --card:#fff; --shadow:0 8px 18px rgba(0,0,0,.12); --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);font-family:ui-rounded,-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:var(--ink);}
+header{position:sticky;top:0;background:linear-gradient(180deg,#f0ffef,#e7ffe7);padding:14px 16px;display:flex;gap:12px;align-items:center;z-index:5;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900}
+.brand .logo{font-size:28px;filter: drop-shadow(1px 2px 0 #3a3)}
+.tagline{font-size:12px;color:#345;opacity:.8}
+main{padding:18px}
+.grid{display:grid;grid-template-columns:1fr;gap:14px;max-width:980px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.menu{display:grid;grid-template-columns:1fr 1fr; gap:14px; padding:16px}
+.btn{background:var(--deep);color:white;border:none;border-radius:12px;padding:14px 16px;font-weight:700; font-size:16px; box-shadow:var(--shadow);}
+.btn.secondary{background:var(--leaf);color:#134}
+.btn.light{background:#fff;border:2px solid #e6f5e6;color:#134}
+.controls{display:flex;gap:10px;align-items:center}
+.age{display:flex;gap:8px;margin-left:auto}
+.age .pill{padding:8px 12px;border-radius:999px;border:2px solid #c9eccb;background:#fff;font-weight:900}
+.age .pill.active{background:#dff6e4}
+h2,h3{margin:0 0 8px 0;padding:0 16px}
+.panel{padding:14px 14px 18px}
+.hidden{display:none}
+
+/* Poster + menu monkey */
+.poster{padding:12px;text-align:center}
+.poster img{width:260px;max-width:70vw;filter: drop-shadow(0 8px 14px rgba(0,0,0,.18));animation:menuFloat 2.2s ease-in-out infinite}
+@keyframes menuFloat{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+
+/* Banana Game */
+.banana-stage{position:relative;min-height:360px;border-radius:14px;background:linear-gradient(180deg,#eafaf1 0 60%, #c2e7c6 60% 100%);overflow:hidden}
+.banana{position:absolute;width:64px;height:64px;border-radius:50%;background:#ffe57a;box-shadow:inset 0 0 0 6px #d6b13a, 0 8px 12px rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.counter{font-weight:900;padding:8px 12px;background:#fff;border:2px solid #e6f5e6;border-radius:999px;display:inline-block}
+
+/* Maze */
+.maze{display:grid;gap:8px;grid-template-columns:repeat(6,1fr);max-width:420px;margin:0 auto}
+.tile{width:56px;height:56px;border-radius:12px;background:#e6f7ea;border:2px solid #cfeedd;box-shadow:inset 0 0 0 2px #dff5e6, 0 2px 0 #bfe3cc}
+.tile.path{background:#c8f2d2}
+.tile.next{outline:3px solid #ffd369}
+
+/* Memory */
+.mem-grid{display:grid;grid-template-columns:repeat(4,72px);gap:10px;justify-content:center}
+.cardX{width:72px;height:72px;border-radius:10px;background:#174b2e;cursor:pointer;position:relative}
+.cardX .face{position:absolute;inset:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:34px;color:#123;background:#103922;transition:transform .3s;transform:rotateY(90deg)}
+.cardX .back{position:absolute;inset:0;border-radius:10px;background:#1d6a40}
+.cardX.revealed .face{transform:rotateY(0)} .cardX.revealed .back{transform:rotateY(90deg)}
+
+/* Puzzle (2-piece) */
+.puzzle{max-width:420px;margin:0 auto;position:relative}
+.pz-bg{width:100%;border-radius:12px;opacity:.2}
+.pz-options{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.pz-piece{width:48%;height:100px;border-radius:12px;background:#eaf6ec;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px dashed #c8e6cc}
+.pz-choice{width:90px;height:90px;border-radius:12px;background:#fff;border:2px solid #e6f5e6;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* Hide & Seek */
+.hide-field{position:relative;height:340px;border-radius:12px;background:linear-gradient(180deg,#dff7e8 0 60%, #a2dbab 60%);overflow:hidden}
+.rock,.bush,.log{position:absolute;border-radius:16px;background:#5aa06b;opacity:.8}
+.rock{width:120px;height:70px;bottom:40px;left:60px;background:#557a65}
+.bush{width:160px;height:90px;bottom:70px;right:40px}
+.log{width:200px;height:40px;bottom:24px;left:220px;background:#7a5a3a}
+.animal{position:absolute;width:72px;height:72px;border-radius:50%;background:#fff8;display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer}
+.found{outline:4px solid #ffd369;border-radius:50%}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">🐒🍌</div><div><div>Monkey’s Jungle Quest</div><div class="tagline">Play · Learn · Explore</div></div></div>
+  <div class="age">
+    <button class="pill active" id="age24">2–4</button>
+    <button class="pill" id="age46">4–6</button>
+  </div>
+  <div class="controls" style="margin-left:12px">
+    <span id="ageLabel" class="counter">Age: 2–4</span>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- HOME MENU -->
+    <section id="home" class="card">
+      <div class="poster">
+        <img src="assets/images/monkey_sitting.png" alt="Monkey" width="260">
+      </div>
+      <div class="menu">
+        <button class="btn" onclick="go('banana')">🍌 Banana Game</button>
+        <button class="btn" onclick="go('maze')">🧭 Animal Maze</button>
+        <button class="btn" onclick="go('memory')">🧠 Memory Match</button>
+        <button class="btn" onclick="go('puzzle')">🧩 Puzzle</button>
+        <button class="btn" onclick="go('hide')">👀 Hide & Seek</button>
+      </div>
+    </section>
+
+    <!-- BANANA GAME -->
+    <section id="banana" class="card hidden" data-monkey-stage>
+      <div class="panel">
+        <div class="controls">
+          <button class="btn light" onclick="go('home')">← Menu</button>
+          <strong style="margin-left:8px">Banana Game (<span id="bTitleAge">2–4</span>)</strong>
+          <span style="margin-left:auto">Count: <span class="counter" id="count">0</span></span>
+        </div>
+      </div>
+      <div class="panel banana-stage" id="bananaStage"></div>
+      <div class="panel">
+        <button class="btn" onclick="spawnBanana()">New Banana</button>
+        <button class="btn secondary" onclick="resetBanana()">Reset</button>
+      </div>
+    </section>
+
+    <!-- MAZE -->
+    <section id="maze" class="card hidden" data-monkey-stage>
+      <div class="panel">
+        <div class="controls">
+          <button class="btn light" onclick="go('home')">← Menu</button>
+          <strong style="margin-left:8px">Animal Maze (<span id="mTitleAge">2–4</span>)</strong>
+          <button class="btn secondary" style="margin-left:auto" onclick="newMaze()">New</button>
+        </div>
+        <div class="maze" id="mazeGrid"></div>
+      </div>
+    </section>
+
+    <!-- MEMORY -->
+    <section id="memory" class="card hidden">
+      <div class="panel">
+        <div class="controls">
+          <button class="btn light" onclick="go('home')">← Menu</button>
+          <strong style="margin-left:8px">Memory Game</strong>
+          <button class="btn secondary" style="margin-left:auto" onclick="newMemory()">Shuffle</button>
+        </div>
+        <div class="mem-grid" id="memGrid"></div>
+      </div>
+    </section>
+
+    <!-- PUZZLE -->
+    <section id="puzzle" class="card hidden">
+      <div class="panel">
+        <div class="controls">
+          <button class="btn light" onclick="go('home')">← Menu</button>
+          <strong style="margin-left:8px">Two-Piece Puzzle</strong>
+          <button class="btn secondary" style="margin-left:auto" onclick="newPuzzle()">New</button>
+        </div>
+        <div class="puzzle">
+          <img class="pz-bg" id="pzBg" src="assets/images/monkey_sitting.png" alt="bg">
+          <div class="pz-options">
+            <div id="pieceA" class="pz-piece">Piece A</div>
+            <div id="pieceB" class="pz-piece">Piece B</div>
+          </div>
+          <div class="pz-options">
+            <div class="pz-choice" data-piece="A">A</div>
+            <div class="pz-choice" data-piece="B">B</div>
+            <div class="pz-choice" data-piece="X">X</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HIDE & SEEK -->
+    <section id="hide" class="card hidden" data-monkey-stage>
+      <div class="panel">
+        <div class="controls">
+          <button class="btn light" onclick="go('home')">← Menu</button>
+          <strong style="margin-left:8px">Hide & Seek</strong>
+          <button class="btn secondary" style="margin-left:auto" onclick="newHide()">New</button>
+        </div>
+        <div class="hide-field" id="hideField">
+          <div class="rock"></div><div class="bush"></div><div class="log"></div>
+        </div>
+        <div class="panel"><span class="counter">Found: <span id="foundCount">0</span>/3</span></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="monkey_movement.js"></script>
+<script>
+/* ==== Shared helpers ==== */
+const speak = (txt)=>{ try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(txt); u.rate=1.0; u.pitch=1.1; speechSynthesis.speak(u);}catch(e){} };
+
+let age = '24'; // '24' or '46'
+const panels = ['home','banana','maze','memory','puzzle','hide'];
+const qs = (s)=>document.querySelector(s);
+function go(id){
+  panels.forEach(p=>qs('#'+p).classList.add('hidden'));
+  qs('#'+id).classList.remove('hidden');
+  // stage move: Monkey.init will keep layer; we just set size per game
+  if(id==='banana' || id==='maze' || id==='hide'){
+    Monkey.init('#'+id);
+    Monkey.setSize( age==='24' ? 140 : 160 );
+    // start near bottom-left
+    setTimeout(()=>Monkey.startAt(16, qs('#'+id).querySelector('.panel')?.getBoundingClientRect().height || 120), 50);
+  }
+}
+
+/* ==== Age toggle ==== */
+qs('#age24').onclick = ()=>{ age='24'; qs('#age24').classList.add('active'); qs('#age46').classList.remove('active'); qs('#ageLabel').textContent='Age: 2–4'; qs('#bTitleAge').textContent='2–4'; qs('#mTitleAge').textContent='2–4'; };
+qs('#age46').onclick = ()=>{ age='46'; qs('#age46').classList.add('active'); qs('#age24').classList.remove('active'); qs('#ageLabel').textContent='Age: 4–6'; qs('#bTitleAge').textContent='4–6'; qs('#mTitleAge').textContent='4–6'; };
+
+/* ==== Banana Game ==== */
+let count=0;
+function resetBanana(){ count=0; qs('#count').textContent=count; qs('#bananaStage').innerHTML=''; }
+function spawnBanana(){
+  const st = qs('#bananaStage');
+  const b = document.createElement('div');
+  b.className='banana';
+  b.style.left = (Math.random()*(st.clientWidth-72)+4)+'px';
+  b.style.top  = (Math.random()*(st.clientHeight-72)+4)+'px';
+  b.textContent = '🍌';
+  st.appendChild(b);
+  // for 2–4: count bananas; for 4–6: simple addition with 1–5
+  b.addEventListener('click', ()=>{
+    if(age==='24'){
+      count++; qs('#count').textContent=count; speak(String(count));
+      Monkey.toElement(b,'climb');
+      b.style.transform='scale(1.15)'; setTimeout(()=>b.remove(), 350);
+    }else{
+      // 4–6: addition target
+      const a = Math.floor(Math.random()*3)+1; const c = Math.floor(Math.random()*3)+1;
+      speak(`What is ${a} plus ${c}?`);
+      const ans = prompt(`${a} + ${c} = ?`);
+      if(ans == (a+c)){ speak('Great job!'); Monkey.toElement(b,'climb'); b.remove(); }
+      else { speak('Try again'); }
+    }
+  }, {once:false});
+}
+
+/* ==== Maze ==== */
+const mazeGrid = qs('#mazeGrid');
+function newMaze(){
+  mazeGrid.innerHTML='';
+  const N = 6; // 6x6
+  const path = []; // simple path from bottom-left to top-right
+  let r=N-1, c=0;
+  for(let i=0;i<N*2-1;i++){ path.push([r,c]); if(r>0 && (Math.random()<.5 || c===N-1)) r--; else c++; }
+  const isPath = (ri,ci)=> path.some(([r,c])=>r===ri&&c===ci);
+  // build grid
+  for(let ri=0;ri<N;ri++){
+    for(let ci=0;ci<N;ci++){
+      const t = document.createElement('div'); t.className='tile'+(isPath(ri,ci)?' path':'');
+      if(isPath(ri,ci)) t.classList.add('cell'); // so Monkey follows
+      mazeGrid.appendChild(t);
+    }
+  }
+  // Next indicator and click logic
+  let step=0;
+  const tiles = Array.from(mazeGrid.children);
+  function idx(r,c){ return r*N+c; }
+  function highlight(){ const [r,c]=path[step]; tiles[idx(r,c)].classList.add('next'); }
+  highlight();
+  mazeGrid.addEventListener('click', function onClick(e){
+    const i = tiles.indexOf(e.target);
+    const [r,c] = path[step];
+    if(i===idx(r,c)){ // correct
+      tiles[i].classList.remove('next');
+      Monkey.toElement(e.target, 'walk');
+      step++;
+      if(step>=path.length){ speak('You made it to the banana!'); mazeGrid.removeEventListener('click', onClick); }
+      else highlight();
+    } else {
+      speak('Oops, try the glowing tile');
+    }
+  });
+}
+newMaze();
+
+/* ==== Memory ==== */
+const emojis24 = ['🦁','🐵','🦜','🐍']; // 4 pairs
+const emojis46 = ['🦁','🐵','🦜','🐍','🦊','🦓']; // 6 pairs
+function newMemory(){
+  const grid = qs('#memGrid');
+  grid.innerHTML='';
+  const items = (age==='24'?emojis24:emojis46).flatMap(x=>[x,x]).sort(()=>Math.random()-.5);
+  let first=null, locked=false, left=items.length/2;
+  for(const ix of items){
+    const card = document.createElement('div'); card.className='cardX';
+    card.innerHTML = `<div class="back"></div><div class="face">${ix}</div>`;
+    grid.appendChild(card);
+    card.addEventListener('click', ()=>{
+      if(locked || card.classList.contains('revealed')) return;
+      card.classList.add('revealed');
+      if(!first){ first=card; }
+      else{
+        locked=true;
+        const a = first.querySelector('.face').textContent;
+        const b = card .querySelector('.face').textContent;
+        if(a===b){ left--; speak('Match!'); locked=false; first=null; }
+        else { setTimeout(()=>{ first.classList.remove('revealed'); card.classList.remove('revealed'); first=null; locked=false; }, 700); }
+        if(left===0) speak('Great memory!');
+      }
+    });
+  }
+}
+newMemory();
+
+/* ==== Puzzle (2-piece with faded bg and 3 choices) ==== */
+function newPuzzle(){
+  qs('#pieceA').textContent='Piece A';
+  qs('#pieceB').textContent='Piece B';
+  document.querySelectorAll('.pz-choice').forEach(c=>c.style.outline='0');
+}
+document.querySelectorAll('.pz-choice').forEach(ch=>{
+  ch.addEventListener('click', ()=>{
+    const p = ch.dataset.piece;
+    ch.style.outline='4px solid #ffd369';
+    if(p==='A'){ qs('#pieceA').textContent='✅ Piece A correct'; speak('Nice! First piece correct'); }
+    else if(p==='B'){ qs('#pieceB').textContent='✅ Piece B correct'; speak('Great! Second piece correct'); }
+    else { speak('Try again'); }
+  });
+});
+newPuzzle();
+
+/* ==== Hide & Seek ==== */
+const animals = ['🦁','🐵','🦜','🐍'];
+function newHide(){
+  const f = qs('#hideField'); f.querySelectorAll('.animal').forEach(n=>n.remove());
+  let found=0; qs('#foundCount').textContent=found;
+  function addAnimal(){
+    const a = document.createElement('div'); a.className='animal'; a.textContent = animals[Math.floor(Math.random()*animals.length)];
+    a.style.left = (Math.random()*(f.clientWidth-80)+10)+'px';
+    a.style.top  = (Math.random()*(f.clientHeight-120)+10)+'px';
+    f.appendChild(a);
+    a.addEventListener('click', ()=>{
+      if(a.classList.contains('found')) return;
+      a.classList.add('found'); found++; qs('#foundCount').textContent=found; speak('Found one!');
+      Monkey.toElement(a,'walk');
+      if(found===3) speak('You found them all!');
+    });
+  }
+  addAnimal(); addAnimal(); addAnimal();
+}
+newHide();
+
+// Start at home
+go('home');
+</script>
+</body>
+</html>
