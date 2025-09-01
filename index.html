@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Monkey’s Jungle Quest — v5</title>
+<style>
+:root{ --bg:#fffef8; --ink:#26323a; --green:#1e7a43; --card:#fff; --shadow:0 10px 22px rgba(0,0,0,.14); --r:16px; }
+html,body{margin:0;background:var(--bg);font-family:ui-rounded,-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#26323a;}
+header{position:sticky;top:0;background:#ffffffd9;backdrop-filter:blur(6px);border-bottom:1px solid #eee;z-index:10}
+header .bar{max-width:1000px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px}
+.brand{display:flex;gap:10px;align-items:center;font-weight:900} .logo{font-size:24px}
+.controls{display:flex;gap:8px;align-items:center}
+.controls button{border:2px solid #cfe9cf;background:#fff;border-radius:999px;padding:8px 12px;font-weight:800;color:#1e5c33}
+.controls button.active{background:var(--green);color:#fff;border-color:var(--green)}
+main{max-width:1000px;margin:0 auto;padding:14px}
+.card{background:#fff;border-radius:16px;box-shadow:0 10px 22px rgba(0,0,0,.14);padding:14px;overflow:hidden;position:relative}
+.bgWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.55}
+.bgWrap .layer{position:absolute;inset:0;background-image:url('images/jungle_bg.svg');background-size:cover;background-repeat:repeat-x;animation: scroll 60s linear infinite;}
+@keyframes scroll{ 0%{background-position:0 0} 100%{background-position:-800px 0} }
+.menuWrap{position:relative;z-index:1}
+.menuWrap img{display:block;width:100%;height:auto;border-radius:12px}
+.hotspot{position:absolute;width:34%;aspect-ratio:1/1;border-radius:22px;} .hotspot:active{transform:scale(.98)}
+#btnBanana{left:7%;top:58%} #btnMaze{right:7%;top:44%} #btnMemory{left:7%;bottom:5%} #btnPuzzle{left:33%;bottom:5%} #btnHide{right:7%;bottom:5%}
+.scene{background:linear-gradient(180deg,#f3fff3,#ffffff);border:1px solid #e3f2e3;border-radius:16px;padding:10px;overflow:hidden;position:relative}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;z-index:2;position:relative}
+.back{background:#fff;border:2px solid #e7f3e7;border-radius:12px;padding:8px 12px;font-weight:800;color:#1c5d33}
+.title{font-size:18px;font-weight:900;margin:0 0 4px} .sub{font-size:13px;opacity:.8;margin:0 0 10px}
+.hidden{display:none} .footer-note{font-size:12px;opacity:.7;text-align:center;margin-top:10px}
+.btn{background:var(--green);color:#fff;border:none;border-radius:16px;padding:12px 16px;font-weight:800;box-shadow:0 10px 22px rgba(0,0,0,.14)}
+.btn.light{background:#fff;color:#1c5d33;border:2px solid #d8efd8}
+#banana24 .tree{position:relative;height:360px;border-radius:16px;border:1px solid #bdebb9;overflow:hidden;background:linear-gradient(180deg,#c9f7c5,#f6fff6)}
+.banana{position:absolute;cursor:pointer;user-select:none;transition:transform .4s, top .6s cubic-bezier(.2,.9,.2,1)}
+.banana.fall{top:300px !important; transform:rotate(18deg)}
+.monkeyMarker, .bananaGoal{position:absolute} .monkeyMarker{left:6px;top:6px} .bananaGoal{right:8px;bottom:8px}
+.countBubble{text-align:center;font-size:26px;font-weight:900;margin-top:8px}
+#banana46 .bunch{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.choiceBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gridMaze{display:grid;gap:6px;justify-content:center;grid-template-columns:repeat(6,56px)}
+.cell{width:56px;height:56px;border-radius:14px;background:#fff;border:2px solid #d9f3d9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.cell.path{background:#fffdf0;border-color:#ffe7a3}
+.cell.goal{background:#e9fff6;border-color:#94e8ff}
+.board{display:grid;grid-template-columns:repeat(4,78px);gap:12px;justify-content:center}
+.cardx{width:78px;height:78px;border-radius:14px;background:#104e2c;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;position:relative;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.12)}
+.leafBack{position:absolute;inset:0;background:repeating-linear-gradient(135deg,#0e4a28,#0e4a28 10px,#135c33 10px,#135c33 20px);opacity:.9}
+.cardx.open .leafBack, .cardx.matched .leafBack{display:none}
+.cardx.open, .cardx.matched{background:#fff;border:2px solid #bdf4bd}
+.cardx img{width:64px;height:64px;animation: float 3.6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.puzzleArea{display:flex;flex-direction:column;align-items:center;gap:10px}
+.puzzleCanvas{position:relative;width:260px;height:170px;background:#f7fff7;border:1px dashed #cce9cc;border-radius:12px;overflow:hidden}
+.piece{width:120px;height:170px;border-radius:12px;border:2px solid #cdeacd;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.piecesTray{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.slot{position:absolute;top:0;width:130px;height:170px;opacity:.35} .slot.left{left:0} .slot.right{right:0}
+.grid2x2{display:grid;grid-template-columns:repeat(2,130px);gap:6px}
+.pieceSmall{width:130px;height:85px;border:2px solid #cdeacd;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hideScene{position:relative;height:420px;border-radius:16px;background:linear-gradient(180deg,#baf0ff,#eaffea);overflow:hidden;border:1px solid #aee7f7}
+.layer{position:absolute;border-radius:20px} .rock{background:#8a9;filter:saturate(.9)} .bush{background:#5db15e} .tree{background:#3f8f54} .river{background:#8ddcff}
+.hiddenAnimal{position:absolute;cursor:pointer;transition:transform .12s, filter .2s} .hiddenAnimal:hover{transform:scale(1.03)} .found{filter:grayscale(100%)}
+.foundCounter{font-weight:800;text-align:center;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand"><div class="logo">🐒🍌</div><div>Monkey’s Jungle Quest</div></div>
+    <div class="controls">
+      <span style="font-weight:700">Age:</span>
+      <button id="btn24" class="active" onclick="setAge('24')">2–4</button>
+      <button id="btn46" onclick="setAge('46')">4–6</button>
+      <button id="soundBtn" onclick="toggleSound()">🔊 Sound: Off</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="bgWrap"><div class="layer"></div></div>
+
+  <section id="menu" class="card">
+    <div class="menuWrap">
+      <img alt="Monkey's Jungle Quest Menu" src="images/menu_art.png"/>
+      <a class="hotspot" id="btnBanana" href="javascript:void(0)" onclick="openGame('banana')"></a>
+      <a class="hotspot" id="btnMaze" href="javascript:void(0)" onclick="openGame('maze')"></a>
+      <a class="hotspot" id="btnMemory" href="javascript:void(0)" onclick="openGame('memory')"></a>
+      <a class="hotspot" id="btnPuzzle" href="javascript:void(0)" onclick="openGame('puzzle')"></a>
+      <a class="hotspot" id="btnHide" href="javascript:void(0)" onclick="openGame('hide')"></a>
+    </div>
+    <p class="footer-note">Tap an icon. Use the Age & Sound buttons above.</p>
+  </section>
+
+  <section id="banana24" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Banana Count (2–4)</div><button class="btn light" onclick="setupBanana24()">New</button></div>
+    <p class="sub">Tap bananas. They fall and count aloud.</p>
+    <div id="tree" class="tree"></div>
+    <div class="countBubble">Count: <span id="count24">0</span></div>
+  </section>
+
+  <section id="banana46" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Banana Math (4–6)</div><button class="btn light" onclick="setupBanana46()">New</button></div>
+    <p class="sub">How many bananas are there in total?</p>
+    <div class="bunch" id="bunchA"></div>
+    <div style="text-align:center;font-weight:800">+</div>
+    <div class="bunch" id="bunchB"></div>
+    <div class="choiceBtns" id="mathChoices46"></div>
+  </section>
+
+  <section id="maze24" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Animal Maze (2–4)</div><button class="btn light" onclick="setupMaze24()">New</button></div>
+    <p class="sub">Help the monkey reach the banana.</p>
+    <div id="mazeBoard24" class="gridMaze"></div>
+  </section>
+
+  <section id="maze46" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Animal Maze (4–6)</div><button class="btn light" onclick="setupMaze46()">New</button></div>
+    <p class="sub">A bigger maze. Follow the path.</p>
+    <div id="mazeBoard46" class="gridMaze"></div>
+  </section>
+
+  <section id="memory" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Memory Game</div><button class="btn light" onclick="setupMemory()">Shuffle</button></div>
+    <p class="sub">Find the animal pairs.</p>
+    <div id="memoryBoard" class="board"></div>
+  </section>
+
+  <section id="puzzle24" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Puzzle (2–4)</div><button class="btn light" onclick="setupPuzzle24()">New</button></div>
+    <div class="puzzleArea">
+      <div id="puzzleCanvas24" class="puzzleCanvas">
+        <div id="slotL" class="slot left"></div>
+        <div id="slotR" class="slot right"></div>
+      </div>
+      <div id="tray24" class="piecesTray"></div>
+    </div>
+  </section>
+
+  <section id="puzzle46" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Puzzle (4–6)</div><button class="btn light" onclick="setupPuzzle46()">New</button></div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div id="guide46" class="puzzleCanvas" style="height:174px"></div>
+      <div class="grid2x2" id="slots46"></div>
+      <div id="tray46" class="piecesTray"></div>
+    </div>
+  </section>
+
+  <section id="hide24" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Hide & Seek (2–4)</div><button class="btn light" onclick="setupHide('hidePlay24',3)">New</button></div>
+    <div id="hidePlay24" class="hideScene"></div>
+  </section>
+
+  <section id="hide46" class="scene hidden">
+    <div class="topbar"><button class="back" onclick="goHome()">← Menu</button><div class="title">Hide & Seek (4–6)</div><button class="btn light" onclick="setupHide('hidePlay46',6)">New</button></div>
+    <div id="hidePlay46" class="hideScene"></div>
+  </section>
+</main>
+
+<script>
+let currentAge='24'; let soundOn=false, audioCtx=null;
+function setAge(a){ currentAge=a; document.getElementById('btn24').classList.toggle('active',a==='24'); document.getElementById('btn46').classList.toggle('active',a==='46'); goHome(); }
+function goHome(){ document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden')); document.getElementById('menu').classList.remove('hidden'); }
+function openGame(key){
+  const map={banana: currentAge==='24'?'banana24':'banana46', maze: currentAge==='24'?'maze24':'maze46', memory:'memory', puzzle: currentAge==='24'?'puzzle24':'puzzle46', hide: currentAge==='24'?'hide24':'hide46'};
+  const id=map[key]; document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden');
+  if(id==='banana24') setupBanana24(); if(id==='banana46') setupBanana46(); if(id==='maze24') setupMaze24(); if(id==='maze46') setupMaze46(); if(id==='memory') setupMemory(); if(id==='puzzle24') setupPuzzle24(); if(id==='puzzle46') setupPuzzle46(); if(id==='hide24') setupHide('hidePlay24',3); if(id==='hide46') setupHide('hidePlay46',6);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function speak(t){ try{const u=new SpeechSynthesisUtterance(t); speechSynthesis.cancel(); speechSynthesis.speak(u);}catch(e){} }
+function toggleSound(){ if(!soundOn){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); const bufferSize=2*audioCtx.sampleRate; const buf=audioCtx.createBuffer(1,bufferSize,audioCtx.sampleRate); const out=buf.getChannelData(0); for(let i=0;i<bufferSize;i++) out[i]=Math.random()*2-1; const src=audioCtx.createBufferSource(); src.buffer=buf; src.loop=true; const lp=audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600; const gain=audioCtx.createGain(); gain.gain.value=0.03; src.connect(lp).connect(gain).connect(audioCtx.destination); src.start(); window._river=src; function chirp(){ if(!audioCtx || !window._river) return; const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; o.frequency.setValueAtTime(900,audioCtx.currentTime); o.frequency.exponentialRampToValueAtTime(1600,audioCtx.currentTime+0.12); g.gain.setValueAtTime(0.0001,audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.08,audioCtx.currentTime+0.02); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.25); o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.26); setTimeout(chirp,2000+Math.random()*3000);} chirp(); soundOn=true; document.getElementById('soundBtn').textContent='🔊 Sound: On'; } else { try{window._river.stop();}catch(e){} window._river=null; soundOn=false; document.getElementById('soundBtn').textContent='🔊 Sound: Off'; } }
+const IMG={ monkey:'images/monkey.svg', lion:'images/lion.svg', elephant:'images/elephant.svg', zebra:'images/zebra.svg', parrot:'images/parrot.svg', toucan:'images/toucan.svg', snake:'images/snake.svg', frog:'images/frog.svg', hippo:'images/hippo.svg', banana:'images/banana.svg' };
+function setupBanana24(){ const tree=document.getElementById('tree'); tree.innerHTML=''; tree.style.backgroundImage="url('images/jungle_bg.svg')"; tree.style.backgroundSize='cover'; const mon=document.createElement('div'); mon.className='monkeyMarker'; mon.innerHTML=`<img src="${IMG.monkey}" width="56" height="56">`; tree.appendChild(mon); const goal=document.createElement('div'); goal.className='bananaGoal'; goal.innerHTML=`<img src="${IMG.banana}" width="64" height="64">`; tree.appendChild(goal); let count=0; document.getElementById('count24').textContent='0'; const n=6+Math.floor(Math.random()*6); for(let i=0;i<n;i++){ const b=document.createElement('div'); b.className='banana'; b.innerHTML=`<img src="${IMG.banana}" width="48" height="48">`; b.style.left=(20+Math.random()*260)+'px'; b.style.top=(30+Math.random()*120)+'px'; b.addEventListener('click',()=>{ if(b.classList.contains('fall')) return; b.classList.add('fall'); count++; document.getElementById('count24').textContent=count; speak(String(count)); }); tree.appendChild(b); } }
+function renderBananas(el,k){ el.innerHTML=''; for(let i=0;i<k;i++){ const s=document.createElement('span'); s.innerHTML=`<img src="${IMG.banana}" width="48" height="48">`; s.style.margin='2px'; el.appendChild(s);} }
+function setupBanana46(){ const a=1+Math.floor(Math.random()*6), b=1+Math.floor(Math.random()*6), ans=a+b; renderBananas(document.getElementById('bunchA'),a); renderBananas(document.getElementById('bunchB'),b); const set=new Set([ans]); while(set.size<3) set.add(Math.max(1, ans+(Math.floor(Math.random()*7)-3))); const ch=document.getElementById('mathChoices46'); ch.innerHTML=''; Array.from(set).sort(()=>Math.random()-0.5).forEach(v=>{ const btn=document.createElement('button'); btn.className='btn'; btn.textContent=v; btn.addEventListener('click',()=>{ if(v===ans){ btn.textContent='✅ '+v; speak('Great job!'); setTimeout(setupBanana46,800);} else { btn.textContent='❌ '+v; } }); ch.appendChild(btn); }); }
+function maze(board,size){ board.innerHTML=''; for(let r=0;r<size;r++) for(let c=0;c<size;c++){ const d=document.createElement('div'); d.className='cell'; d.dataset.r=r; d.dataset.c=c; board.appendChild(d); } const idx=(r,c)=>r*size+c; for(let i=0;i<size;i++) board.children[idx(0,i)].classList.add('path'); for(let i=0;i<size;i++) board.children[idx(i,size-1)].classList.add('path'); board.children[idx(size-1,size-1)].classList.add('goal'); let pos=[0,0]; const mon=`<img src="${IMG.monkey}" width="48" height="48">`; const ban=`<img src="${IMG.banana}" width="48" height="48">`; board.children[idx(0,0)].innerHTML=mon; board.children[idx(size-1,size-1)].innerHTML=ban; Array.from(board.children).forEach(cell=>{ cell.addEventListener('click',()=>{ const rr=parseInt(cell.dataset.r), cc=parseInt(cell.dataset.c); const ok=(rr===pos[0] && cc===pos[1]+1) || (cc===pos[1] && rr===pos[0]+1); if(!ok) return; board.children[idx(pos[0],pos[1])].innerHTML=''; pos=[rr,cc]; board.children[idx(rr,cc)].innerHTML=mon; if(rr===size-1 && cc===size-1){ speak('Yummy banana!'); setTimeout(()=>maze(board,size),800); } }); }); }
+function setupMaze24(){ const b=document.getElementById('mazeBoard24'); b.style.gridTemplateColumns='repeat(6,56px)'; maze(b,6); }
+function setupMaze46(){ const b=document.getElementById('mazeBoard46'); b.style.gridTemplateColumns='repeat(8,56px)'; maze(b,8); }
+let memFirst=null, memLock=false, matches=0, memPairs=0;
+function setupMemory(){ const board=document.getElementById('memoryBoard'); const pool=(currentAge==='24'? ['monkey','lion','elephant','frog'] : ['monkey','lion','elephant','zebra','parrot','frog','toucan','snake']).slice(0, currentAge==='24'?4:6); const arr=[...pool,...pool].sort(()=>Math.random()-0.5); board.innerHTML=''; memFirst=null; memLock=false; matches=0; memPairs=pool.length; arr.forEach(name=>{ const card=document.createElement('div'); card.className='cardx'; card.dataset.name=name; card.innerHTML='<div class="leafBack"></div>'; card.addEventListener('click',()=>openCard(card)); board.appendChild(card); }); }
+function openCard(card){ if(memLock || card.classList.contains('matched') || card.classList.contains('open')) return; card.classList.add('open'); card.innerHTML=`<img src="${IMG[card.dataset.name]}" alt="${card.dataset.name}">`; if(!memFirst){ memFirst=card; return; } if(memFirst.dataset.name===card.dataset.name){ memFirst.classList.add('matched'); card.classList.add('matched'); memFirst=null; matches++; if(matches===memPairs) setTimeout(()=>alert('All pairs found!'),80); } else { memLock=true; setTimeout(()=>{ card.classList.remove('open'); card.innerHTML='<div class="leafBack"></div>'; memFirst.classList.remove('open'); memFirst.innerHTML='<div class="leafBack"></div>'; memFirst=null; memLock=false; }, 700); } }
+function halfImg(name,side){ const wrap=document.createElement('div'); wrap.style.width='120px'; wrap.style.height='170px'; wrap.style.overflow='hidden'; const img=document.createElement('img'); img.src=IMG[name]; img.style.width='240px'; img.style.height='170px'; img.style.transform='translateX('+(side==='L'?'0':'-120')+'px)'; wrap.appendChild(img); return wrap; }
+function setupPuzzle24(){ const animals=['monkey','lion','elephant','zebra','parrot','frog','toucan','snake']; const target=animals[Math.floor(Math.random()*animals.length)]; const canvas=document.getElementById('puzzleCanvas24'); canvas.innerHTML=`<img src="${IMG[target]}" style="position:absolute;left:65px;top:20px;width:110px;height:110px;opacity:.25">`; const slotL=document.getElementById('slotL'), slotR=document.getElementById('slotR'); slotL.innerHTML=''; slotR.innerHTML=''; const tray=document.getElementById('tray24'); tray.innerHTML=''; const decoy=animals.filter(a=>a!==target)[Math.floor(Math.random()*(animals.length-1))]; const pieces=[['L',halfImg(target,'L')],['R',halfImg(target,'R')],['X',halfImg(decoy, Math.random()<.5?'L':'R')]].sort(()=>Math.random()-0.5); let placedL=false, placedR=false; pieces.forEach(([k,node])=>{ const p=document.createElement('div'); p.className='piece'; p.appendChild(node); p.addEventListener('click',()=>{ if(k==='L' && !placedL){ slotL.innerHTML=''; slotL.appendChild(halfImg(target,'L')); placedL=true; p.remove(); } else if(k==='R' && !placedR){ slotR.innerHTML=''; slotR.appendChild(halfImg(target,'R')); placedR=true; p.remove(); } else { p.style.transform='scale(.96)'; setTimeout(()=>p.style.transform='',150); } if(placedL && placedR) setTimeout(()=>setupPuzzle24(),800); }); tray.appendChild(p); }); }
+function quarterImg(name,q){ const wrap=document.createElement('div'); wrap.className='pieceSmall'; wrap.style.overflow='hidden'; const img=document.createElement('img'); img.src=IMG[name]; img.style.width='260px'; img.style.height='170px'; const x=(q%2)*130, y=Math.floor(q/2)*85; img.style.transform=`translate(${-x}px, ${-y}px)`; wrap.appendChild(img); return wrap; }
+function setupPuzzle46(){ const animals=['monkey','lion','elephant','zebra','parrot','frog','toucan','snake']; const target=animals[Math.floor(Math.random()*animals.length)]; const guide=document.getElementById('guide46'); guide.innerHTML=`<img src="${IMG[target]}" style="position:absolute;left:65px;top:20px;width:130px;height:130px;opacity:.25">`; const slots=document.getElementById('slots46'); slots.innerHTML=''; for(let i=0;i<4;i++){ const s=document.createElement('div'); s.className='pieceSmall'; s.dataset.slot=i; slots.appendChild(s); } const tray=document.getElementById('tray46'); tray.innerHTML=''; const pieces=[0,1,2,3].map(i=>['ok',quarterImg(target,i),i]).concat([['x',quarterImg(animals.filter(a=>a!==target)[0],0),-1]]).sort(()=>Math.random()-0.5); let placed=0; pieces.forEach(([kind,node,slot])=>{ const p=document.createElement('div'); p.className='pieceSmall'; p.appendChild(node.firstChild.cloneNode(true)); p.addEventListener('click',()=>{ if(kind==='ok'){ const empty=Array.from(slots.children).find(s=>!s.dataset.filled); if(empty){ empty.innerHTML=''; empty.appendChild(quarterImg(target, parseInt(empty.dataset.slot)).firstChild); empty.dataset.filled='1'; placed++; p.remove(); } } else { p.style.transform='scale(.96)'; setTimeout(()=>p.style.transform='',150); } if(placed===4) setTimeout(()=>setupPuzzle46(),900); }); tray.appendChild(p); }); }
+function setupHide(containerId,numAnimals){ const host=document.getElementById(containerId); host.innerHTML=''; const river=document.createElement('div'); river.className='layer river'; river.style.left='-20px'; river.style.top='240px'; river.style.width='120%'; river.style.height='70px'; river.style.transform='rotate(-6deg)'; river.style.opacity='.7'; host.appendChild(river); for(let i=0;i<8;i++){ const b=document.createElement('div'); b.className='layer bush'; b.style.left=(20+Math.random()*280)+'px'; b.style.top=(40+Math.random()*280)+'px'; b.style.width=(60+Math.random()*100)+'px'; b.style.height=(26+Math.random()*60)+'px'; host.appendChild(b); } for(let i=0;i<4;i++){ const r=document.createElement('div'); r.className='layer rock'; r.style.left=(20+Math.random()*280)+'px'; r.style.top=(160+Math.random()*200)+'px'; r.style.width=(50+Math.random()*90)+'px'; r.style.height=(22+Math.random()*40)+'px'; host.appendChild(r); } const picks = ['monkey','lion','elephant','zebra','parrot','frog','hippo','toucan','snake'].sort(()=>Math.random()-0.5).slice(0,numAnimals); let found=0; let counter=document.getElementById(containerId+'-counter'); if(!counter){ counter=document.createElement('div'); counter.id=containerId+'-counter'; counter.className='foundCounter'; host.parentElement.appendChild(counter);} counter.textContent=`Found 0/${picks.length}`; picks.forEach(name=>{ const el=document.createElement('div'); el.className='hiddenAnimal'; el.style.left=(20+Math.random()*280)+'px'; el.style.top=(40+Math.random()*300)+'px'; el.innerHTML=`<img src="${IMG[name]}" width="64" height="64">`; el.addEventListener('click',()=>{ if(el.classList.contains('found')) return; el.classList.add('found'); found++; counter.textContent=`Found ${found}/${picks.length}`; if(found===picks.length) setTimeout(()=>alert('You found them all!'),80); }); host.appendChild(el); }); }
+goHome();
+</script>
+</body>
+</html>
