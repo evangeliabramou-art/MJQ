@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monkey’s Jungle Quest</title>
+  <link rel="stylesheet" href="monkey_movement.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fefefe;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background: #c3f2c0;
+      padding: 1em;
+    }
+    .menu {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1em;
+      margin: 1em;
+    }
+    .menu button {
+      background: green;
+      color: white;
+      padding: 1em;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+    }
+    #gameArea {
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    img.monkey {
+      width: 180px;
+      max-width: 40%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐵 Monkey’s Jungle Quest</h1>
+    <p>Play • Learn • Explore</p>
+    <div>
+      Age:
+      <button onclick="setAge('2-4')">2–4</button>
+      <button onclick="setAge('4-6')">4–6</button>
+    </div>
+  </header>
+
+  <div class="menu">
+    <button onclick="go('banana')">🍌 Banana Game</button>
+    <button onclick="go('maze')">🧭 Animal Maze</button>
+    <button onclick="go('memory')">🧠 Memory Match</button>
+    <button onclick="go('puzzle')">🧩 Puzzle</button>
+    <button onclick="go('hide')">👀 Hide & Seek</button>
+  </div>
+
+  <div id="gameArea">
+    <h2>Welcome!</h2>
+    <p>Select a game above to start.</p>
+    <img src="assets/images/monkey_sitting.png" class="monkey" alt="Monkey sitting" />
+  </div>
+
+  <script src="monkey_movement.js"></script>
+  <script>
+    let currentAge = "2-4";
+    function setAge(age) {
+      currentAge = age;
+      alert("Age set to " + age);
+    }
+
+    function go(game) {
+      const area = document.getElementById("gameArea");
+      if (game === "banana") {
+        area.innerHTML = "<h2>Banana Game ("+currentAge+")</h2><p>Count the bananas!</p>";
+      }
+      else if (game === "maze") {
+        area.innerHTML = "<h2>Animal Maze ("+currentAge+")</h2><p>Help the monkey reach the banana!</p>";
+      }
+      else if (game === "memory") {
+        area.innerHTML = "<h2>Memory Game</h2><p>Find the pairs!</p>";
+      }
+      else if (game === "puzzle") {
+        area.innerHTML = `
+          <h2>Puzzle</h2>
+          <div>
+            <span id="pieceA">🧩</span>
+            <span id="pieceB">🧩</span>
+          </div>
+          <button onclick="checkPuzzle('A')">Place A</button>
+          <button onclick="checkPuzzle('B')">Place B</button>
+        `;
+      }
+      else if (game === "hide") {
+        area.innerHTML = `
+          <h2>Hide & Seek</h2>
+          <div id="hideField" style="position:relative;width:300px;height:300px;margin:0 auto;background:#e8f5e9;border:2px solid #ccc;"></div>
+          <p>Found: <span id="foundCount">0</span></p>
+        `;
+        newHide();
+      }
+    }
+
+    function checkPuzzle(piece) {
+      if (piece === 'A') alert("Piece A fits!");
+      else if (piece === 'B') alert("Piece B fits!");
+      else alert("Try again!");
+    }
+
+    function newHide() {
+      const field = document.getElementById("hideField");
+      if (!field) return;
+      field.innerHTML = "";
+      let found = 0;
+      const animals = ['🦁','🐵','🦜','🐍'];
+      animals.forEach(animal => {
+        const a = document.createElement("div");
+        a.textContent = animal;
+        a.style.position = "absolute";
+        a.style.left = Math.random()*250 + "px";
+        a.style.top = Math.random()*250 + "px";
+        a.style.fontSize = "30px";
+        a.style.cursor = "pointer";
+        field.appendChild(a);
+        a.addEventListener("click", () => {
+          if (a.style.opacity==="0.3") return;
+          a.style.opacity="0.3";
+          found++;
+          document.getElementById("foundCount").textContent = found;
+          if (found===animals.length) alert("You found them all!");
+        });
+      });
+    }
+  </script>
+</body>
+</html>
