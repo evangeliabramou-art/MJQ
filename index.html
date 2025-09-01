@@ -72,8 +72,9 @@
   </div>
 
   <script src="monkey_movement.js"></script>
+  <script>  <script src="monkey_movement.js"></script>
   <script>
-    let currentAge = "2-4";
+    let currentAge = "2–4";
     function setAge(age) {
       currentAge = age;
       alert("Age set to " + age);
@@ -81,31 +82,48 @@
 
     function go(game) {
       const area = document.getElementById("gameArea");
+
       if (game === "banana") {
-        area.innerHTML = "<h2>Banana Game ("+currentAge+")</h2><p>Count the bananas!</p>";
+        area.innerHTML = `<h2>Banana Game (${currentAge})</h2>
+          <p>Tap the bananas to count! (demo)</p>
+          <img class="monkey" src="assets/images/monkey_standing.PNG" alt="Monkey">`;
+        return;
       }
-      else if (game === "maze") {
-        area.innerHTML = "<h2>Animal Maze ("+currentAge+")</h2><p>Help the monkey reach the banana!</p>";
+
+      if (game === "maze") {
+        area.innerHTML = `<h2>Animal Maze (${currentAge})</h2>
+          <p>Tap the next glowing tile to help the monkey reach the banana. (demo)</p>`;
+        return;
       }
-      else if (game === "memory") {
-        area.innerHTML = "<h2>Memory Game</h2><p>Find the pairs!</p>";
+
+      if (game === "memory") {
+        area.innerHTML = `<h2>Memory Game</h2>
+          <p>Find the animal pairs. (demo)</p>`;
+        return;
       }
-      else if (game === "puzzle") {
+
+      if (game === "puzzle") {
+        // two-piece puzzle placeholder (we’ll swap to your final later)
         area.innerHTML = `
           <h2>Puzzle</h2>
-          <div>
+          <p>Pick the two pieces that match the faded picture (demo):</p>
+          <div style="display:flex; gap:12px; justify-content:center; font-size:30px;">
             <span id="pieceA">🧩</span>
             <span id="pieceB">🧩</span>
           </div>
-          <button onclick="checkPuzzle('A')">Place A</button>
-          <button onclick="checkPuzzle('B')">Place B</button>
+          <div style="margin-top:12px;">
+            <button onclick="checkPuzzle('A')">Pick A</button>
+            <button onclick="checkPuzzle('B')">Pick B</button>
+          </div>
         `;
+        return;
       }
-      else if (game === "hide") {
+
+      if (game === "hide") {
         area.innerHTML = `
           <h2>Hide & Seek</h2>
-          <div id="hideField" style="position:relative;width:300px;height:300px;margin:0 auto;background:#e8f5e9;border:2px solid #ccc;"></div>
-          <p>Found: <span id="foundCount">0</span></p>
+          <div id="hideField" style="position:relative;height:260px;background:#f7ffe9;border-radius:10px;"></div>
+          <p>Found: <span id="foundCount">0</span>/4</p>
         `;
         newHide();
       }
@@ -123,24 +141,33 @@
       field.innerHTML = "";
       let found = 0;
       const animals = ['🦁','🐵','🦜','🐍'];
+
       animals.forEach(animal => {
         const a = document.createElement("div");
         a.textContent = animal;
         a.style.position = "absolute";
         a.style.left = Math.random()*250 + "px";
-        a.style.top = Math.random()*250 + "px";
+        a.style.top  = Math.random()*250 + "px";
         a.style.fontSize = "30px";
         a.style.cursor = "pointer";
         field.appendChild(a);
+
         a.addEventListener("click", () => {
-          if (a.style.opacity==="0.3") return;
-          a.style.opacity="0.3";
+          if (a.style.opacity === "0.3") return;
+          a.style.opacity = "0.3";
           found++;
           document.getElementById("foundCount").textContent = found;
-          if (found===animals.length) alert("You found them all!");
+          if (found === animals.length) alert("You found them all!");
         });
       });
     }
+
+    // show welcome with the sitting monkey (correct case)
+    document.getElementById("gameArea").innerHTML = `
+      <h2>Welcome!</h2>
+      <p>Select a game above to start.</p>
+      <img class="monkey" src="assets/images/monkey_sitting.PNG" alt="Monkey sitting">
+    `;
   </script>
 </body>
 </html>
