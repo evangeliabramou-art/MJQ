@@ -9,96 +9,38 @@
   <link rel="stylesheet" href="monkey_movement.css">
 
   <style>
-    :root{
-      --card-bg:#eaf9ee;
-      --poster-shadow: 0 18px 42px rgba(0,0,0,.18);
-      --btn-shadow: 0 10px 20px rgba(0,0,0,.12);
-      --radius: 22px;
-    }
+/* Invisible, perfectly aligned hotspots */
+.hotspot{
+  position:absolute;
+  background: transparent;         /* no white box */
+  border-radius: var(--radius);
+  box-shadow: none;
+  border: 0;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .06s ease, background .06s ease;
+}
+.hotspot:active,
+.hotspot:focus-visible{
+  background: rgba(255,255,255,.18);     /* brief tap highlight */
+  box-shadow: 0 0 0 6px rgba(255,255,255,.45), 0 10px 20px rgba(0,0,0,.12);
+  transform: translateY(1px) scale(.99);
+}
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:#123;
-      background:#f7fff9;
-      text-align:center;
-    }
+/* — tuned positions (percentages) — */
+/* top row */
+.banana { left: 7.5%;  top: 61.5%;  width: 33%;  height: 13%;  }
+.snake  { right: 7.5%; top: 61.5%;  width: 33%;  height: 13%;  }
 
-    header{
-      background:#bfeec6;
-      padding:18px 14px 8px;
-    }
-    header h1{
-      margin:.2rem 0 .6rem;
-      font-size: clamp(24px, 5.8vw, 40px);
-    }
-    .age-switch{ margin:.4rem 0 0; }
-    .age-switch button{
-      margin:0 .25rem;
-      padding:.35rem .8rem;
-      border-radius:999px;
-      border:0;
-      background:#fff;
-      box-shadow:0 2px 8px rgba(0,0,0,.08);
-      font-weight:600;
-      cursor:pointer;
-    }
+/* bottom row */
+.memory { left: 10.8%; bottom: 8.9%; width: 26%;  height: 12.5%; }
+.puzzle { left: 37.4%; bottom: 8.9%; width: 25.2%; height: 12.5%; }
+.hide   { right:10.8%; bottom: 8.9%; width: 26%;  height: 12.5%; }
 
-    /* Poster container using your image */
-    .poster{
-      width:min(92vw, 900px);
-      aspect-ratio: 3 / 4;                   /* nicely matches the image */
-      margin:24px auto 10px;
-      position:relative;
-      border-radius:26px;
-      background:url('assets/images/menu.PNG') center/cover no-repeat;
-      box-shadow: var(--poster-shadow);
-      overflow:hidden;
-      outline:1px solid rgba(0,0,0,.05);
-    }
-
-    /* Clickable overlays (absolute so we can align perfectly) */
-    .hotspot{
-      position:absolute;
-      background:rgba(255,255,255,.92);
-      border-radius: var(--radius);
-      box-shadow: var(--btn-shadow);
-      cursor:pointer;
-      border:0;
-      transition: transform .06s ease, box-shadow .06s ease;
-    }
-    .hotspot:active{ transform: translateY(1px) scale(.99); box-shadow:0 6px 14px rgba(0,0,0,.12); }
-
-    /* === Positions (percentages so they stay aligned as poster scales) ===
-       Tuned for your current poster. Adjust by 1–2% if you want pixel-perfect. */
-
-    /* top row */
-    .banana { left: 11.5%; top: 62.4%; width: 37%; height: 13.2%; }
-    .snake  { right: 11.5%; top: 62.4%; width: 37%; height: 13.2%; }
-
-    /* bottom row */
-    .memory { left: 11.5%; bottom: 8.7%; width: 25%; height: 11.8%; }
-    .puzzle { left: 37.8%; bottom: 8.7%; width: 24.4%; height: 11.8%; }
-    .hide   { right: 11.5%; bottom: 8.7%; width: 25%; height: 11.8%; }
-
-    /* Mobile tightening (very small screens) */
-    @media (max-width:420px){
-      .banana,.snake{ height:14.5%; }
-      .memory,.puzzle,.hide{ height:13.2%; }
-    }
-
-    /* Game area card */
-    .card{
-      width:min(92vw, 900px);
-      margin:18px auto 60px;
-      background:#fff;
-      border-radius: 18px;
-      padding: 26px 18px 30px;
-      box-shadow: 0 14px 34px rgba(0,0,0,.12);
-    }
-    .card h2{ margin:.2rem 0 .6rem; font-size: clamp(22px,4.6vw,32px); }
-    #gameArea p{ margin:.4rem 0 0; font-size:clamp(14px, 3.8vw, 18px); }
+/* Optional tiny tighten on very small screens */
+@media (max-width:420px){
+  .banana,.snake{ height:14%; }
+  .memory,.puzzle,.hide{ height:13%; }
+}
   </style>
 </head>
 <body>
