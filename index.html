@@ -28,37 +28,44 @@
   .chip.active{background:var(--chip-active)}
 
   /* === Poster menu card === */
-  .poster-card{
-    max-width:980px;margin:0 auto 28px;padding:14px;background:var(--card);
-    border-radius:20px;box-shadow:var(--shadow);
-  }
-  .poster-wrap{
-    position:relative; /* anchor absolutely positioned hotspots */
-    border-radius:14px;overflow:hidden;
-  }
-  .poster{width:100%;display:block;user-select:none;-webkit-user-drag:none}
+.poster-card{
+  max-width:980px;
+  margin:0 auto 28px;
+  padding:14px;
+  background:#fff;
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
 
-  /* --- TEMP DEBUG (shows hotspot boxes). Set to 0 when aligned. --- */
-  .debug .hotspot{outline:2px solid rgba(0,150,255,.35);background:rgba(0,150,255,.12)}
-  /* Toggle debug by adding/removing the 'debug' class on body */
+.poster-wrap{
+  position:relative;   /* <-- anchor for absolute hotspots */
+  border-radius:14px;
+  overflow:hidden;
+}
 
-  /* Hotspot positions tuned for your menu.PNG (phone + desktop) */%; top: 72%; width: 23%; height: 12.5%; }
-/* Hotspots – perfectly circular */
+.poster{ width:100%; display:block; user-select:none; -webkit-user-drag:none; }
+
+/* hotspots – absolute over the poster */
 .hotspot{
   position:absolute;
   border:0;
   background:transparent;
   cursor:pointer;
-  color:transparent;  /* hides button text */
+  color:transparent;   /* hide text */
   outline:none;
-  border-radius:50%;   /* makes them 
-  /* Adjusted positions (move them UP and center better) */
-.hs-banana{ left: 9%;   top: 38%; width: 25%; height: 13%; }
-.hs-snake { right:9%;   top: 38%; width: 25%; height: 13%; }
+  border-radius:50%;
+}
 
-.hs-memory{ left: 14%;  top: 55%; width: 22%; height: 13%; }
-.hs-puzzle{ left: 39%;  top: 55%; width: 22%; height: 13%; }
-.hs-hide  { left: 64%;  top: 55%; width: 22%; height: 13%; }
+/* tuned positions (you already used these numbers) */
+.hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
+.hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
+.hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
+.hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
+.hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
+
+/* (optional) show boxes while aligning
+.debug .hotspot{ outline:2px solid rgba(0,160,255,.35); border-radius:16px; }
+*/
   /* === Game area === */
   .card{
     max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;
