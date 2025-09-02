@@ -85,18 +85,16 @@
   </div>
 
   <section class="poster-card" aria-label="Main menu">
-    <div class="poster-wrap">
-      <!-- IMPORTANT: exact path/name/case -->
-      <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
+  <div class="poster-wrap">   <!-- this wrapper is important -->
+    <img class="poster" src="assets/images/menu_poster.png" alt="Monkey’s Jungle Quest Menu">
 
-      <!-- Invisible, perfectly aligned hotspots (click areas) -->
-      <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
-      <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
-      <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
-      <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
-      <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
-    </div>
-  </section>
+    <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
+    <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
+    <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
+    <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
+    <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
+  </div>
+</section>
 
   <div id="gameArea" class="card" role="region" aria-live="polite">
     <h2>Welcome!</h2>
