@@ -49,12 +49,24 @@
   /* Toggle debug by adding/removing the 'debug' class on body */
 
   /* Hotspot positions tuned for your menu.PNG (phone + desktop) */%; top: 72%; width: 23%; height: 12.5%; }
-.hs-banana{ left: 8.5%;  top: 47.5%; width: 29%; height: 13%; }
-.hs-snake { right:8.5%;  top: 47.5%; width: 29%; height: 13%; }
+/* Hotspots – perfectly circular */
+.hotspot{
+  position:absolute;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  color:transparent;  /* hides button text */
+  outline:none;
+  border-radius:50%;   /* makes them circles */
+}
 
-.hs-memory{ left: 13.8%; top: 64%; width: 23%; height: 12.5%; }
-.hs-puzzle{ left: 38.5%; top: 64%; width: 23%; height: 12.5%; }
-.hs-hide  { left: 63%;   top: 64%; width: 23%; height: 12.5%; }
+/* Adjusted positions */
+.hs-banana{ left: 9%;   top: 42%; width: 25%; height: 14%; }
+.hs-snake { right:9%;   top: 42%; width: 25%; height: 14%; }
+
+.hs-memory{ left: 14%;  top: 59%; width: 22%; height: 13%; }
+.hs-puzzle{ left: 39%;  top: 59%; width: 22%; height: 13%; }
+.hs-hide  { left: 64%;  top: 59%; width: 22%; height: 13%; }
   /* === Game area === */
   .card{
     max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;
