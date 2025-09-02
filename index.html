@@ -78,32 +78,39 @@
   user-select: none;
   -webkit-user-drag: none;
 }
-.menu-poster {
+/* === Poster menu === */
+.menu-poster{
   position: relative;
   display: inline-block;
-}
-
-.poster {
   width: 100%;
-  max-width: 420px; /* adjust size */
+  max-width: 420px;       /* keep the poster a nice size */
+  margin: 20px auto;
+}
+.menu-poster img{
+  width: 100%;
+  display: block;
   border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.12);
 }
 
-.menu-poster .btn {
+/* invisible clickable areas on top of the poster */
+.menu-poster button{
   position: absolute;
-  background: rgba(255, 255, 255, 0); /* invisible */
-  border: none;
+  background: rgba(255,255,255,0); /* transparent but clickable */
+  border: 0;
   cursor: pointer;
-  width: 120px; /* size of clickable area */
-  height: 120px;
 }
 
-/* Position each button over the right spot */
-.banana { top: 65%; left: 12%; }
-.maze   { top: 65%; right: 12%; }
-.memory { top: 80%; left: 12%; }
-.puzzle { top: 80%; right: 12%; }
-.hide   { top: 95%; left: 35%; }
+/* positions are percentages so it scales with the image */
+.menu-poster button.banana { top: 62%; left: 8%;  width: 35%; height: 12%; }
+.menu-poster button.maze   { top: 62%; left: 55%; width: 35%; height: 12%; }
+.menu-poster button.memory { top: 78%; left: 8%;  width: 35%; height: 12%; }
+.menu-poster button.puzzle { top: 78%; left: 55%; width: 35%; height: 12%; }
+.menu-poster button.hide   { top: 92%; left: 30%; width: 40%; height: 10%; }
+
+/* (optional) turn on outlines while aligning:
+.menu-poster button{ outline: 2px dashed rgba(0,0,0,.3); }
+*/
   </style>
 </head>
 <body>
@@ -125,16 +132,14 @@
        src="assets/images/monkey_sitting.PNG"
        alt="Monkey" />
 
- <div class="menu-poster">
-  <img src="assets/images/menu.png" alt="Monkey's Jungle Quest Menu" class="poster">
-
-  <!-- Clickable game areas -->
-  <button class="btn banana" onclick="go('banana')"></button>
-  <button class="btn maze" onclick="go('maze')"></button>
-  <button class="btn memory" onclick="go('memory')"></button>
-  <button class="btn puzzle" onclick="go('puzzle')"></button>
-  <button class="btn hide" onclick="go('hide')"></button>
-</div> 
+  <div class="menu-poster">
+  <img src="assets/images/menu.PNG" alt="Monkey's Jungle Quest Menu" />
+  <button class="banana" onclick="go('banana')"></button>
+  <button class="maze"   onclick="go('maze')"></button>
+  <button class="memory" onclick="go('memory')"></button>
+  <button class="puzzle" onclick="go('puzzle')"></button>
+  <button class="hide"   onclick="go('hide')"></button>
+</div>
 </section>
 
 <!-- keep this after the hero -->
