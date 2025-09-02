@@ -2,107 +2,168 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Monkey’s Jungle Quest</title>
 
-  <!-- Your existing CSS for movement/other pages -->
-  <link rel="stylesheet" href="monkey_movement.css">
-
   <style>
-/* Invisible, perfectly aligned hotspots */
-.hotspot{
-  position:absolute;
-  background: transparent;         /* no white box */
-  border-radius: var(--radius);
-  box-shadow: none;
-  border: 0;
-  cursor: pointer;
-  transition: transform .06s ease, box-shadow .06s ease, background .06s ease;
-}
-.hotspot:active,
-.hotspot:focus-visible{
-  background: rgba(255,255,255,.18);     /* brief tap highlight */
-  box-shadow: 0 0 0 6px rgba(255,255,255,.45), 0 10px 20px rgba(0,0,0,.12);
-  transform: translateY(1px) scale(.99);
-}
+    :root{
+      --mint:#e9f7ef;
+      --card:#ffffff;
+      --shadow:0 10px 26px rgba(0,0,0,.10);
+      --chip:#ecf1ee;
+      --chip-active:#d7f0dd;
+    }
+    html,body{margin:0;padding:0;font-family:Arial, Helvetica, sans-serif;background:var(--mint);color:#111;}
 
-/* — tuned positions (percentages) — */
-/* top row */
-.banana { left: 7.5%;  top: 61.5%;  width: 33%;  height: 13%;  }
-.snake  { right: 7.5%; top: 61.5%;  width: 33%;  height: 13%;  }
+    /* ===== Top bar (matches your first screenshot) ===== */
+    .topbar{
+      max-width: 980px; margin: 14px auto 20px; padding: 10px 14px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .brand .logo{ font-size:28px; line-height:1; }
+    .brand .title{ font-size:18px; font-weight:800; line-height:1.1; }
+    .brand .title small{ font-weight:600; }
 
-/* bottom row */
-.memory { left: 10.8%; bottom: 8.9%; width: 26%;  height: 12.5%; }
-.puzzle { left: 37.4%; bottom: 8.9%; width: 25.2%; height: 12.5%; }
-.hide   { right:10.8%; bottom: 8.9%; width: 26%;  height: 12.5%; }
+    .controls{ display:flex; gap:10px; align-items:center; }
+    .chip{
+      border:0; border-radius:28px; padding:8px 14px; background:var(--chip);
+      font-weight:700; cursor:pointer;
+    }
+    .chip.active{ background:var(--chip-active); }
 
-/* Optional tiny tighten on very small screens */
-@media (max-width:420px){
-  .banana,.snake{ height:14%; }
-  .memory,.puzzle,.hide{ height:13%; }
-}
+    /* ===== Poster menu card ===== */
+    .poster-card{
+      max-width: 980px; margin: 0 auto 28px; padding: 14px;
+      background:var(--card); border-radius:20px; box-shadow:var(--shadow);
+      position:relative;
+    }
+    .poster{
+      width:100%; display:block; border-radius:14px;
+      user-select:none; -webkit-user-drag:none;
+    }
+
+    /* Hotspots – responsive percentages so they stay on top of icons */
+    .hotspot{
+      position:absolute; border:0; background:transparent; cursor:pointer;
+      /* a11y */
+      color:transparent;
+    }
+    .hotspot:active{ transform:scale(.98); }
+
+    /* Tuned to the poster you sent (works phone + desktop) */
+    .hs-banana{ left: 8.5%;  top: 58.5%; width: 29%; height: 13.5%; }
+    .hs-snake { right:8.5%;  top: 58.5%; width: 29%; height: 13.5%; }
+    .hs-memory{ left: 14.3%; top: 76.5%; width: 24%; height: 13.5%; }
+    .hs-puzzle{ left: 38.3%; top: 76.5%; width: 24%; height: 13.5%; }
+    .hs-hide  { left: 62.3%; top: 76.5%; width: 24%; height: 13.5%; }
+
+    @media (max-width: 420px){
+      .poster-card{ padding:10px; border-radius:16px; }
+      .poster{ border-radius:12px; }
+    }
+
+    /* ===== Content / game area card ===== */
+    .card{
+      max-width:980px; margin:0 auto 50px; background:#fff; border-radius:20px;
+      box-shadow:var(--shadow); padding: 24px; text-align:center;
+    }
+    .card h2{ margin: 0 0 8px; font-size:28px; }
+    .card p{ margin: 0; font-size:18px; color:#333; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🐵 Monkey’s Jungle Quest</h1>
-    <p>Play • Learn • Explore</p>
-    <div class="age-switch">
-      Age:
-      <button onclick="setAge('2–4')">2–4</button>
-      <button onclick="setAge('4–6')">4–6</button>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo">🐒🍌</span>
+      <div class="title">
+        <div><strong>Monkey’s</strong> Jungle Quest</div>
+      </div>
     </div>
-  </header>
 
-  <!-- Poster + perfectly aligned hotspots -->
-  <section class="poster" aria-label="Main menu">
-    <button class="hotspot banana" aria-label="Banana Math" onclick="go('banana')"></button>
-    <button class="hotspot snake"  aria-label="Snake Game"  onclick="go('maze')"></button>
-    <button class="hotspot memory" aria-label="Memory Game" onclick="go('memory')"></button>
-    <button class="hotspot puzzle" aria-label="Puzzle Game" onclick="go('puzzle')"></button>
-    <button class="hotspot hide"   aria-label="Hide &amp; Seek Game" onclick="go('hide')"></button>
+    <div class="controls">
+      <span>Age:</span>
+      <button class="chip active" onclick="setAge('2–4', this)">2–4</button>
+      <button class="chip" onclick="setAge('4–6', this)">4–6</button>
+      <button id="soundBtn" class="chip" onclick="toggleSound()">🔈 <span>Off</span></button>
+    </div>
+  </div>
+
+  <!-- Poster-menu -->
+  <section class="poster-card" aria-label="Main menu">
+    <!-- ✅ Put your new poster at this exact path/name -->
+    <img class="poster" src="assets/images/menu_poster.png" alt="Monkey’s Jungle Quest Menu">
+
+    <!-- Invisible, perfectly aligned hotspots -->
+    <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
+    <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
+    <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
+    <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
+    <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
   </section>
 
-  <!-- Game area below -->
-  <section id="gameArea" class="card" aria-live="polite">
+  <!-- Game area -->
+  <div id="gameArea" class="card" role="region" aria-live="polite">
     <h2>Welcome!</h2>
     <p>Select a game above to start.</p>
-  </section>
+  </div>
 
-  <!-- Your existing game JS -->
+  <!-- Your existing JS (kept) -->
   <script src="monkey_movement.js"></script>
 
+  <!-- Small helper JS so the menu works even if your game files are minimal -->
   <script>
-    // Simple router + age state (kept from previous versions)
     let currentAge = '2–4';
-    function setAge(age){
+    let soundOn = false;
+
+    function setAge(age, btn){
       currentAge = age;
+      // toggle chip styles
+      document.querySelectorAll('.controls .chip').forEach(c => c.classList.remove('active'));
+      // keep sound button appearance independent
+      document.querySelectorAll('.controls .chip')[age==='2–4'?1:0]?.classList.remove('active');
+      btn.classList.add('active');
       alert('Age set to ' + age);
     }
 
+    function toggleSound(){
+      soundOn = !soundOn;
+      document.querySelector('#soundBtn span').textContent = soundOn ? 'On' : 'Off';
+    }
+
+    // Router for poster buttons
     function go(game){
       const area = document.getElementById('gameArea');
-      if (!area) return;
 
-      if (game === 'banana'){
-        area.innerHTML = `<h2>Banana Math (${currentAge})</h2>
-          <p>Coming next: we’ll hook this to your Banana game code.</p>`;
-      } else if (game === 'maze'){
-        area.innerHTML = `<h2>Snake Game (${currentAge})</h2>
-          <p>We’ll connect this to your maze/snake logic.</p>`;
-      } else if (game === 'memory'){
-        area.innerHTML = `<h2>Memory Game</h2>
-          <p>Flip the cards to find matches!</p>`;
-      } else if (game === 'puzzle'){
-        area.innerHTML = `<h2>Puzzle Game</h2>
-          <p>Drag the pieces to solve the puzzle.</p>`;
-      } else if (game === 'hide'){
-        area.innerHTML = `<h2>Hide &amp; Seek</h2>
-          <p>Tap the bushes to find the hidden animals.</p>`;
+      // If you exposed specific starters in your other JS, call them:
+      const starterMap = {
+        banana:  window.startBanana,
+        maze:    window.startMaze,
+        memory:  window.startMemory,
+        puzzle:  window.startPuzzle,
+        hide:    window.startHideSeek
+      };
+
+      if (starterMap[game] && typeof starterMap[game] === 'function'){
+        starterMap[game](area, currentAge, soundOn);
+        return;
       }
-      // If your monkey_movement.js exports functions to initialize each game,
-      // call them here (e.g., startBanana(), startMaze(), etc.).
+
+      // Fallback content (keeps page functional if starters aren’t defined)
+      const titles = {
+        banana:'Banana Math',
+        maze:'Snake Game',
+        memory:'Memory Game',
+        puzzle:'Puzzle Game',
+        hide:'Hide & Seek'
+      };
+      area.innerHTML = `
+        <h2>${titles[game] || 'Game'}</h2>
+        <p>Age: ${currentAge}${soundOn ? ' • Sound On' : ''}</p>
+        <p style="margin-top:12px;color:#555">Game loads here.</p>
+      `;
     }
   </script>
 </body>
