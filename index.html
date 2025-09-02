@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monkey’s Jungle Quest</title>
+  <style>
+    :root{
+      --card-bg:#ffffff;
+      --shadow:0 10px 24px rgba(0,0,0,.12);
+      --radius:18px;
+      --brand:#1f6a4b;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      margin:0;
+      background:#f3f7f3;
+      color:#222;
+      text-align:center;
+    }
+    header{
+      background:#c3f2c0;
+      padding:18px 14px;
+    }
+    header h1{
+      margin:.2rem 0 .4rem;
+      font-size:clamp(26px, 6vw, 44px);
+    }
+    header p{ margin:.2rem 0 .8rem; opacity:.8; }
+    .chipbar{ display:inline-flex; gap:10px; align-items:center; }
+    .chipbar .chip{
+      border:1px solid rgba(0,0,0,.15);
+      background:#fff;
+      border-radius:20px;
+      padding:6px 10px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    /* Poster section */
+    .poster-wrap{
+      max-width: 820px;
+      margin: 20px auto 18px;
+      padding: 0 14px;
+    }
+    .poster{
+      position:relative;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .poster img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+    /* Invisible clickable hotspots - positioned to match the 5 blobs */
+    .hotspot{
+      position:absolute;
+      display:block;
+      transform: translate(-50%,-50%);
+      /* size and rounded to roughly follow the blob shapes */
+      width: 28%;
+      height: 18%;
+      border-radius: 24px;
+      /* Make it click-only, keep transparent */
+      background: rgba(255,255,255,0);
+      cursor: pointer;
+    }
+    /* centers (percent) tuned for the reference poster */
+    #hs-banana{ left:22%; top:64%; }
+    #hs-snake{  left:78%; top:64%; }
+    #hs-memory{ left:22%; top:84%; }
+    #hs-puzzle{ left:50%; top:84%; }
+    #hs-hide{   left:78%; top:84%; }
+
+    /* Game area card */
+    .card{
+      max-width: 820px;
+      margin: 16px auto 40px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      text-align:center;
+    }
+    .card h2{ margin:.2rem 0 .6rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐵 Monkey’s Jungle Quest</h1>
+    <p>Play • Learn • Explore</p>
+    <div class="chipbar">
+      <span>Age:</span>
+      <button class="chip" onclick="setAge('2–4')">2–4</button>
+      <button class="chip" onclick="setAge('4–6')">4–6</button>
+    </div>
+  </header>
+
+  <main class="poster-wrap">
+    <section class="poster">
+      <!-- EXACT poster image the user approved -->
+      <img src="assets/images/menu.png" alt="Monkey’s Jungle Quest Poster Menu" />
+      <!-- Clickable hotspots mapped to the 5 bubbles -->
+      <a id="hs-banana" class="hotspot" aria-label="Banana Math" href="#banana" onclick="go('banana');return false;"></a>
+      <a id="hs-snake"  class="hotspot" aria-label="Snake Game" href="#snake" onclick="go('snake');return false;"></a>
+      <a id="hs-memory" class="hotspot" aria-label="Memory Game" href="#memory" onclick="go('memory');return false;"></a>
+      <a id="hs-puzzle" class="hotspot" aria-label="Puzzle Game" href="#puzzle" onclick="go('puzzle');return false;"></a>
+      <a id="hs-hide"   class="hotspot" aria-label="Hide &amp; Seek Game" href="#hide" onclick="go('hide');return false;"></a>
+    </section>
+  </main>
+
+  <section id="gameArea" class="card">
+    <h2>Welcome!</h2>
+    <p>Select a game above to start.</p>
+  </section>
+
+  <script>
+    let currentAge = '2–4';
+    function setAge(age){
+      currentAge = age;
+      alert('Age set to ' + age);
+    }
+    function go(game){
+      const area = document.getElementById('gameArea');
+      if(game==='banana'){
+        area.innerHTML = `<h2>Banana Math (${currentAge})</h2>
+          <p>Coming soon: count the bananas! 🍌</p>`;
+      }else if(game==='snake'){
+        area.innerHTML = `<h2>Snake Game (${currentAge})</h2>
+          <p>Slither through the maze safely! 🐍</p>`;
+      }else if(game==='memory'){
+        area.innerHTML = `<h2>Memory Game</h2>
+          <p>Flip the cards and find pairs! 🧠</p>`;
+      }else if(game==='puzzle'){
+        area.innerHTML = `<h2>Puzzle Game</h2>
+          <div style="font-size:28px">🧩 Put the pieces together!</div>`;
+      }else if(game==='hide'){
+        area.innerHTML = `<h2>Hide &amp; Seek Game</h2>
+          <p>Find the hidden animals in the jungle! 👀</p>`;
+      }
+      // Smooth scroll into view on mobile
+      area.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  </script>
+</body>
+</html>
