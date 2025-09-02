@@ -339,5 +339,254 @@ window.startHideSeek = function(mount){
   mount.append(h('h2',{},'Hide & Seek'), h('p',{style:'color:#555'},'Tap all the animals you can find!'), field);
 };
 </script>
+  <script>
+/* =========================================================
+   UTILITIES
+========================================================= */
+const $ = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const speak = (txt)=>{ try{ if(window.speechSynthesis && soundOn){
+   const u = new SpeechSynthesisUtterance(txt); speechSynthesis.speak(u);
+}}catch(e){} };
+
+function makeCard(title, subtitle=''){
+  return `
+    <h2 style="margin:0 0 8px">${title}</h2>
+    ${subtitle?`<p style="margin:0 0 14px;color:#4b4b4b">${subtitle}</p>`:''}
+  `;
+}
+
+/* =========================================================
+   🍌 BANANA MATH
+   Count the bananas and choose the right number
+========================================================= */
+window.startBanana = function(mount, age){
+  const max = (age==='4–6')? 12 : 6;
+  const doRound = ()=>{
+    const n = Math.floor(Math.random()*max)+1;
+    const opts = new Set([n]);
+    while(opts.size<3){ opts.add( Math.max(1, Math.min(max, n + (Math.floor(Math.random()*5)-2))) );}
+    const buttons = [...opts].sort((a,b)=>a-b).map(v =>
+      `<button data-v="${v}" style="min-width:56px;margin:6px;padding:12px 14px;border:0;border-radius:12px;background:#ffd54f;font-weight:800;box-shadow:0 4px 10px rgba(0,0,0,.1)">${v}</button>`
+    ).join('');
+    mount.innerHTML = makeCard('🍌 Banana Math',`Age: ${age}`) + `
+      <div style="font-size:40px;line-height:1.2;margin:8px 0 6px">${'🍌'.repeat(n)}</div>
+      <p style="margin:6px 0 10px">How many bananas?</p>
+      <div>${buttons}</div>
+      <div id="bananaMsg" style="margin-top:10px;font-weight:700"></div>
+    `;
+    $$('#gameArea button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const v = +b.dataset.v;
+        if(v===n){ $('#bananaMsg').textContent='Correct!'; speak('Correct!');
+          setTimeout(doRound, 800);
+        }else{ $('#bananaMsg').textContent='Try again'; speak('Try again'); }
+      });
+    });
+  };
+  doRound();
+};
+
+/* =========================================================
+   🐍 SNAKE MAZE
+   Reach the ⭐ without hitting walls
+========================================================= */
+window.startMaze = function(mount, age){
+  const size = (age==='4–6')? 11 : 9;       // grid size
+  const stepMs = 110;                       // tick speed
+  const cell = 28;                          // px
+  let head = {x:1, y:1};
+  let goal = {x:size-2, y:size-2};
+  let dir = {x:1,y:0};
+  let playing = true;
+
+  // simple ring + a few blocks
+  const grid = Array.from({length:size},(_,y)=>
+    Array.from({length:size},(_,x)=> (x===0||y===0||x===size-1||y===size-1)?1:0)
+  );
+  // random obstacles
+  const blocks = (age==='4–6')? 16 : 10;
+  let placed = 0;
+  while(placed<blocks){
+    const x = 1+Math.floor(Math.random()*(size-2));
+    const y = 1+Math.floor(Math.random()*(size-2));
+    if((x===head.x&&y===head.y)||(x===goal.x&&y===goal.y)) continue;
+    if(grid[y][x]===0){ grid[y][x]=1; placed++; }
+  }
+  grid[head.y][head.x]=0; grid[goal.y][goal.x]=0;
+
+  mount.innerHTML = makeCard('🐍 Snake Game','Reach the ⭐ without touching walls') + `
+    <div id="mazeWrap" style="display:inline-block;background:#f7fff4;border-radius:12px;padding:8px;box-shadow:0 6px 16px rgba(0,0,0,.12)">
+      <canvas id="maze" width="${size*cell}" height="${size*cell}" style="border-radius:8px"></canvas>
+    </div>
+    <div style="margin-top:10px;display:flex;justify-content:center;gap:10px">
+      <button class="d" data-x="0" data-y="-1">⬆️</button>
+      <button class="d" data-x="-1" data-y="0">⬅️</button>
+      <button class="d" data-x="1" data-y="0">➡️</button>
+      <button class="d" data-x="0" data-y="1">⬇️</button>
+    </div>
+  `;
+  $$('#gameArea .d').forEach(b=>b.style.cssText='padding:10px 14px;border:0;border-radius:10px;background:#c8e6c9;font-weight:800');
+
+  const ctx = $('#maze').getContext('2d');
+  function draw(){
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    // ground
+    ctx.fillStyle='#e6ffe0';
+    ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    // walls
+    ctx.fillStyle='#2e7d32';
+    for(let y=0;y<size;y++) for(let x=0;x<size;x++){
+      if(grid[y][x]) ctx.fillRect(x*cell,y*cell,cell,cell);
+    }
+    // goal
+    ctx.fillStyle='#ffd54f';
+    ctx.fillRect(goal.x*cell+6, goal.y*cell+6, cell-12, cell-12);
+    // head
+    ctx.fillStyle='#4caf50';
+    ctx.beginPath();
+    ctx.arc(head.x*cell+cell/2, head.y*cell+cell/2, cell*0.38, 0, Math.PI*2);
+    ctx.fill();
+  }
+  function tick(){
+    if(!playing) return;
+    const nx=head.x+dir.x, ny=head.y+dir.y;
+    if(grid[ny]?.[nx]){ playing=false; speak('Oops!'); alert('Oops! You hit a wall.'); return; }
+    head={x:nx,y:ny};
+    draw();
+    if(head.x===goal.x && head.y===goal.y){ playing=false; speak('You win!'); setTimeout(()=>alert('You win!'),50); return; }
+    setTimeout(tick, stepMs);
+  }
+  draw(); tick();
+  $$('#gameArea .d').forEach(b=>b.addEventListener('click',()=>{
+    dir={x: +b.dataset.x, y:+b.dataset.y};
+  }));
+  // swipe
+  let sx,sy;
+  $('#maze').addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; });
+  $('#maze').addEventListener('touchend',e=>{
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx)>Math.abs(dy)) dir={x: dx>0?1:-1, y:0}; else dir={x:0, y:dy>0?1:-1};
+  });
+};
+
+/* =========================================================
+   🧠 MEMORY MATCH
+========================================================= */
+window.startMemory = function(mount, age){
+  const pairs = (age==='4–6')? 6 : 4;
+  const pool = ['🦁','🦄','🦊','🐵','🐸','🦋','🌸','🍄','🍌','🦓'];
+  const icons = pool.slice(0,pairs);
+  const deck = [...icons, ...icons].sort(()=>Math.random()-0.5);
+  let first=null, lock=false, found=0, moves=0;
+
+  mount.innerHTML = makeCard('🧠 Memory Game',`Find all ${pairs} pairs`) + `
+    <div id="grid" style="display:grid;grid-template-columns:repeat(4,78px);gap:10px;justify-content:center;margin-top:8px"></div>
+    <p id="moves" style="margin-top:10px">Moves: 0</p>
+  `;
+  const g = $('#grid');
+  deck.forEach((ico,i)=>{
+    const el = document.createElement('button');
+    el.className='card';
+    el.dataset.icon = ico;
+    el.style.cssText='width:78px;height:78px;border:0;border-radius:12px;background:#90caf9;font-size:0;box-shadow:0 6px 12px rgba(0,0,0,.12)';
+    el.innerHTML = `<span style="font-size:44px;display:none">${ico}</span>`;
+    el.addEventListener('click',()=>{
+      if(lock || el.classList.contains('done') || $('span',el).style.display==='block') return;
+      $('span',el).style.display='block';
+      moves++; $('#moves').textContent='Moves: '+moves;
+      if(!first){ first=el; return; }
+      // second
+      if(first.dataset.icon===el.dataset.icon){
+        first.classList.add('done'); el.classList.add('done');
+        found++; speak('Match');
+        if(found===pairs) setTimeout(()=>{ speak('Great job!'); alert('Great job!'); }, 200);
+        first=null;
+      }else{
+        lock=true; setTimeout(()=>{ $('span',first).style.display='none'; $('span',el).style.display='none'; first=null; lock=false; }, 700);
+      }
+    });
+    g.appendChild(el);
+  });
+};
+
+/* =========================================================
+   🧩 PUZZLE (3×2 for 2–4, 3×3 for 4–6) — drag to reorder
+   Uses background-position slices of the monkey image
+========================================================= */
+window.startPuzzle = function(mount, age){
+  const rows = (age==='4–6')? 3 : 2;
+  const cols = (age==='4–6')? 3 : 3;
+  const img = 'assets/images/monkey_sitting.PNG';
+  const W = 300, H = rows===2? 240 : 300;
+
+  mount.innerHTML = makeCard('🧩 Puzzle Game', `Drag the tiles to fix the picture`) + `
+    <div id="pz" style="width:${W}px;margin:10px auto;display:grid;grid-template-columns:repeat(${cols},1fr);gap:6px"></div>
+  `;
+  const pz = $('#pz');
+  const tiles=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const i = r*cols+c;
+    const div = document.createElement('div');
+    div.className='t'; div.draggable=true; div.dataset.correct=i;
+    div.style.cssText=`width:${Math.floor((W-(cols-1)*6)/cols)}px;height:${Math.floor((H-(rows-1)*6)/rows)}px;border-radius:8px;background:#eee;background-image:url('${img}');background-size:${W}px ${H}px;background-position:${-c* (W/cols)}px ${-r*(H/rows)}px;box-shadow:0 4px 10px rgba(0,0,0,.12)`;
+    tiles.push(div);
+  }
+  tiles.sort(()=>Math.random()-0.5).forEach(el=>pz.appendChild(el));
+
+  let drag=null;
+  pz.addEventListener('dragstart',e=>drag=e.target);
+  pz.addEventListener('dragover',e=>e.preventDefault());
+  pz.addEventListener('drop',e=>{
+    e.preventDefault();
+    const target = e.target.closest('.t'); if(!target || target===drag) return;
+    const a = Array.from(pz.children).indexOf(drag);
+    const b = Array.from(pz.children).indexOf(target);
+    if(a<b) pz.insertBefore(target, drag); else pz.insertBefore(drag, target);
+    checkWin();
+  });
+  function checkWin(){
+    const ok = $$('.t', pz).every((el,idx)=> +el.dataset.correct===idx);
+    if(ok){ speak('Puzzle complete'); setTimeout(()=>alert('Puzzle complete!'), 100); }
+  }
+};
+
+/* =========================================================
+   👀 HIDE & SEEK — find all animals
+========================================================= */
+window.startHideSeek = function(mount, age){
+  const animals = age==='4–6' ? ['🦁','🐵','🦊','🦓','🦉'] : ['🐵','🦊','🦉'];
+  mount.innerHTML = makeCard('👀 Hide & Seek', 'Tap all the animals hidden in the field') + `
+    <div id="field" style="position:relative;width:320px;height:220px;margin:10px auto;border-radius:14px;background:linear-gradient(#e8f7e4,#d4f0d2);box-shadow:0 6px 16px rgba(0,0,0,.12);overflow:hidden"></div>
+    <p id="foundTxt">Found: 0 / ${animals.length}</p>
+  `;
+  const f = $('#field');
+  let found=0;
+  // bushes
+  for(let i=0;i<26;i++){
+    const b = document.createElement('div');
+    b.textContent='🌿';
+    b.style.cssText=`position:absolute;left:${Math.random()*280}px;top:${Math.random()*180}px;font-size:${20+Math.random()*16}px;opacity:.55`;
+    f.appendChild(b);
+  }
+  // animals
+  animals.forEach(a=>{
+    const el = document.createElement('button');
+    el.textContent = a;
+    el.style.cssText = 'position:absolute;border:0;background:transparent;font-size:30px;cursor:pointer';
+    el.style.left = (10+Math.random()*260)+'px';
+    el.style.top  = (10+Math.random()*160)+'px';
+    el.addEventListener('click',()=>{
+      el.style.opacity='.25';
+      el.disabled=true;
+      found++; $('#foundTxt').textContent=`Found: ${found} / ${animals.length}`;
+      speak('Found one');
+      if(found===animals.length){ speak('You found them all'); setTimeout(()=>alert('You found them all!'),100); }
+    });
+    f.appendChild(el);
+  });
+};
+</script>
 </body>
 </html>
