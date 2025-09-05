@@ -36,39 +36,21 @@
     border-radius:20px;
     box-shadow:var(--shadow);
   }
-
-  .poster-wrap{
-    position:relative;   /* anchor for absolute hotspots */
-    border-radius:14px;
-    overflow:hidden;
-  }
-
+  .poster-wrap{ position:relative; border-radius:14px; overflow:hidden; }
   .poster{ width:100%; display:block; user-select:none; -webkit-user-drag:none; }
 
-  /* hotspots – absolute over the poster */
+  /* hotspots on poster */
   .hotspot{
-    position:absolute;
-    border:0;
-    background:transparent;
-    cursor:pointer;
-    color:transparent;   /* hide text */
-    outline:none;
-    border-radius:50%;
-    z-index:2;
+    position:absolute; border:0; background:transparent; cursor:pointer; color:transparent;
+    outline:none; border-radius:50%; z-index:2;
   }
-
-  /* tuned positions */
   .hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
   .hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
   .hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
   .hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
   .hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
 
-  /* (optional) show boxes while aligning
-  .debug .hotspot{ outline:2px solid rgba(0,160,255,.35); border-radius:16px; }
-  */
-
-  /* === Game area === */
+  /* Game card */
   .card{
     max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;
     box-shadow:var(--shadow);padding:24px;text-align:center
@@ -78,9 +60,7 @@
 </style>
 </head>
 
-<!-- Add 'debug' to body to SEE hotspot boxes; remove it when aligned -->
 <body>
-
   <div class="topbar">
     <div class="brand">
       <span class="logo">🐒🍌</span>
@@ -96,11 +76,8 @@
 
   <section class="poster-card" aria-label="Main menu">
     <div class="poster-wrap">
-      <!-- case matters on GitHub Pages -->
       <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
-
-      <!-- hotspots -->
-      <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
+      <button class="hotspot hs-banana" aria-label="Banana Game" onclick="go('banana')">Banana</button>
       <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
       <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
       <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
@@ -113,7 +90,7 @@
     <p>Select a game above to start.</p>
   </div>
 
-  <!-- optional: your animation file; safe if empty -->
+  <!-- optional (can be empty) -->
   <script src="monkey_movement.js"></script>
 
   <script>
@@ -121,20 +98,18 @@
    GLOBALS + HELPERS
 ========================================================= */
 let currentAge = '2–4';
-let soundOn = false;
+let soundOn    = false;
 
 const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-const speak = (txt)=>{
+function speak(txt){
   try{
     if(window.speechSynthesis && soundOn){
-      const u = new SpeechSynthesisUtterance(txt);
-      speechSynthesis.speak(u);
+      speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
     }
   }catch(e){}
-};
-
+}
 function makeCard(title, subtitle=''){
   return `
     <h2 style="margin:0 0 8px">${title}</h2>
@@ -142,27 +117,18 @@ function makeCard(title, subtitle=''){
   `;
 }
 
-/* =========================================================
-   UI CONTROLS
-========================================================= */
 function setAge(age, btn){
   currentAge = age;
   $$('.controls .chip').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  // show a tiny toast inside game area
-  const ga = $('#gameArea');
-  ga.innerHTML = makeCard('Age changed', `Now playing: ${age}`);
-  speak(age==='2–4' ? 'Ages two to four' : 'Ages four to six');
+  $('#gameArea').innerHTML = makeCard('Age changed', `Now playing: ${age}`);
 }
-
 function toggleSound(){
   soundOn = !soundOn;
   $('#soundBtn span').textContent = soundOn ? 'On' : 'Off';
 }
-
 function go(key){
   const mount = $('#gameArea');
-  // route to the chosen game (same buttons but difficulty scales by age)
   if(key==='banana')      startBanana(mount, currentAge);
   else if(key==='maze')   startMaze(mount, currentAge);
   else if(key==='memory') startMemory(mount, currentAge);
@@ -171,21 +137,17 @@ function go(key){
 }
 
 /* =========================================================
-   🍌 BANANA MATH — Count the bananas
-========================================================= */
-/* =========================================================
-   🍌 BANANA COUNT — tap bananas, they fall, monkey eats
+   🍌 BANANA COUNT — Tap bananas → they fall → monkey walks & chews
+   Ages 2–4 → count to 5; Ages 4–6 → count to 10; shows big number & speaks it
 ========================================================= */
 window.startBanana = function(mount, age){
   const max = (age==='4–6') ? 10 : 5;
   let count = 0;
 
-  // helper: say number words
   const words = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
   const numWord = n => words[n] || String(n);
 
-  // scene + styles (scoped)
-  mount.innerHTML = makeCard('🍌 Banana Count', 'Tap the bananas. Monkey eats them!') + `
+  mount.innerHTML = makeCard('🍌 Banana Count', 'Tap a banana. The monkey will eat it!') + `
     <style>
       #scene{
         position:relative; width:340px; height:260px; margin:10px auto;
@@ -204,10 +166,27 @@ window.startBanana = function(mount, age){
       .banana.fall{ transform: translateY(150px) rotate(20deg); }
       .banana.gone{ opacity:0; pointer-events:none; }
 
+      /* Monkey sprite (PNG) + emoji fallback */
       .monkey{
-        position:absolute; bottom:10px; left:150px; font-size:42px;
-        transition: transform .6s ease; transform: translateX(0);
+        position:absolute; bottom:10px; left:150px; width:56px; height:56px;
+        display:flex; align-items:center; justify-content:center;
+        transition: transform .6s ease;
       }
+      .monkey img{ width:56px; height:56px; display:block; image-rendering:auto; }
+      .monkey .emoji{ font-size:42px; display:none; }
+      .monkey.walk{ animation: walk-bob .6s infinite ease-in-out; }
+      .monkey.chew{ animation: chew .45s ease-in-out 3; }
+
+      @keyframes walk-bob{
+        0%,100%{ transform: translateY(0); }
+        50%{ transform: translateY(-4px); }
+      }
+      @keyframes chew{
+        0%{ transform: scale(1) rotate(0deg); }
+        50%{ transform: scale(0.96) rotate(-3deg); }
+        100%{ transform: scale(1) rotate(0deg); }
+      }
+
       .bubble{
         position:absolute; left:50%; top:10px; transform:translateX(-50%);
         font-size:38px; font-weight:900; background:#fff; padding:6px 16px;
@@ -227,31 +206,33 @@ window.startBanana = function(mount, age){
     <div id="scene" aria-label="Banana game scene">
       <div class="tree left">🌳</div>
       <div class="tree right">🌳</div>
-      <div id="monkey" class="monkey" aria-label="Monkey">🐒</div>
+
+      <div id="monkey" class="monkey" aria-label="Monkey">
+        <img id="monkeyImg"
+             src="assets/images/monkey_walk.png"
+             onerror="this.onerror=null;this.src='assets/images/monkey_sitting.PNG';this.addEventListener('error',()=>{this.style.display='none';document.getElementById('monkeyEmoji').style.display='block';});"
+             alt="Monkey">
+        <div id="monkeyEmoji" class="emoji">🐒</div>
+      </div>
+
       <div class="ground"></div>
     </div>
     <p id="countTxt" style="margin-top:8px;font-weight:800">Count: 0 / ${max}</p>
   `;
 
-  const scene  = document.getElementById('scene');
-  const monkey = document.getElementById('monkey');
-  const countTxt = document.getElementById('countTxt');
+  const scene   = document.getElementById('scene');
+  const monkey  = document.getElementById('monkey');
+  const countTxt= document.getElementById('countTxt');
 
-  // place bananas around the canopies
-  const bananas = [];
   function spawn(){
-    // clear old
-    bananas.splice(0).forEach(b => b.el.remove());
-    scene.querySelectorAll('.bubble,.toast').forEach(x=>x.remove());
     count = 0;
     countTxt.textContent = `Count: 0 / ${max}`;
+    scene.querySelectorAll('.banana,.bubble,.toast').forEach(x=>x.remove());
 
-    // create max bananas split between trees with slight randomness
     for(let i=0;i<max;i++){
       const leftSide = i % 2 === 0;
-      const baseX = leftSide ? 60 : (340-60-10); // canopy center
-      const jitterX = (Math.random()*40 - 20);
-      const x = baseX + jitterX;
+      const baseX = leftSide ? 60 : (340-70);
+      const x = baseX + (Math.random()*40 - 20);
       const y = 64 + Math.random()*30;
 
       const el = document.createElement('div');
@@ -259,67 +240,64 @@ window.startBanana = function(mount, age){
       el.textContent = '🍌';
       el.style.left = (x-10)+'px';
       el.style.top  = y+'px';
-      el.dataset.state = 'fresh';
-      el.addEventListener('click', ()=>dropAndEat(el, x));
+      el.dataset.x = x;
+      el.addEventListener('click', ()=>dropAndEat(el));
       scene.appendChild(el);
-      bananas.push({el, x});
     }
 
-    // little tip bubble
     const tip = document.createElement('div');
     tip.className='toast';
     tip.textContent='Tap a banana!';
     scene.appendChild(tip);
-    setTimeout(()=>tip.remove(), 1400);
+    setTimeout(()=>tip.remove(), 1200);
   }
 
-  function dropAndEat(el, x){
-    if(el.dataset.state!=='fresh') return;
-    el.dataset.state='falling';
-    // make it fall
+  function dropAndEat(el){
+    if(el.classList.contains('fall')) return;
+    const x = +el.dataset.x;
     el.classList.add('fall');
 
-    // move monkey to X (limit edges)
+    // walk toward the banana
     const targetX = Math.min(300, Math.max(10, x-20));
+    monkey.classList.add('walk');
     monkey.style.transform = `translateX(${targetX-150}px)`;
 
-    // after the fall, “eat”
     setTimeout(()=>{
+      // reached → eat
       el.classList.add('gone');
+      monkey.classList.remove('walk');
+      monkey.classList.add('chew');
+      setTimeout(()=>monkey.classList.remove('chew'), 900);
 
       count++;
       countTxt.textContent = `Count: ${count} / ${max}`;
 
-      // number bubble + voice
       const b = document.createElement('div');
       b.className='bubble';
       b.textContent = count;
       scene.appendChild(b);
-      speak(numWord(count));
 
+      speak((['one','two','three','four','five','six','seven','eight','nine','ten'])[count-1] || String(count));
+      if(soundOn) setTimeout(()=>speak('yum'), 250);
       setTimeout(()=>b.remove(), 650);
 
-      // small “yum”
-      if(soundOn) setTimeout(()=>speak('yum'), 250);
-
       if(count===max){
-        // celebrate, then reset
         const t = document.createElement('div');
-        t.className='toast';
-        t.textContent='Great job! 👏';
+        t.className='toast'; t.textContent='Great job! 👏';
         scene.appendChild(t);
         setTimeout(()=>{ t.remove(); spawn(); }, 1000);
       }
-    }, 820);
+    }, 620); // allow some walk time before "eat"
   }
 
   spawn();
 };
+
 /* =========================================================
    🐍 SNAKE MAZE — Reach the ⭐
 ========================================================= */
 window.startMaze = function(mount, age){
-  const size = (age==='4–6')? 11 : 9;  // grid size
+  const size = (age==='4–6')? 11 : 9;
   const stepMs = 110;
   const cell = 28;
   let head = {x:1, y:1};
@@ -327,11 +305,9 @@ window.startMaze = function(mount, age){
   let dir = {x:1,y:0};
   let playing = true;
 
-  // build grid with border walls
   const grid = Array.from({length:size},(_,y)=>
     Array.from({length:size},(_,x)=> (x===0||y===0||x===size-1||y===size-1)?1:0)
   );
-  // random obstacles
   const blocks = (age==='4–6')? 16 : 10;
   let placed = 0;
   while(placed<blocks){
@@ -358,18 +334,13 @@ window.startMaze = function(mount, age){
   const ctx = $('#maze').getContext('2d');
   function draw(){
     ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    // ground
-    ctx.fillStyle='#e6ffe0';
-    ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    // walls
+    ctx.fillStyle='#e6ffe0'; ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
     ctx.fillStyle='#2e7d32';
     for(let y=0;y<size;y++) for(let x=0;x<size;x++){
       if(grid[y][x]) ctx.fillRect(x*cell,y*cell,cell,cell);
     }
-    // goal
     ctx.fillStyle='#ffd54f';
     ctx.fillRect(goal.x*cell+6, goal.y*cell+6, cell-12, cell-12);
-    // head
     ctx.fillStyle='#4caf50';
     ctx.beginPath();
     ctx.arc(head.x*cell+cell/2, head.y*cell+cell/2, cell*0.38, 0, Math.PI*2);
@@ -386,7 +357,6 @@ window.startMaze = function(mount, age){
   }
   draw(); tick();
   $$('#gameArea .d').forEach(b=>b.addEventListener('click',()=>{ dir={x:+b.dataset.x, y:+b.dataset.y}; }));
-  // swipe on mobile
   let sx,sy;
   $('#maze').addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; });
   $('#maze').addEventListener('touchend',e=>{
@@ -422,7 +392,6 @@ window.startMemory = function(mount, age){
       $('span',el).style.display='block';
       moves++; $('#moves').textContent='Moves: '+moves;
       if(!first){ first=el; return; }
-      // second
       if(first.dataset.icon===el.dataset.icon){
         first.classList.add('done'); el.classList.add('done');
         found++; speak('Match');
@@ -487,14 +456,12 @@ window.startHideSeek = function(mount, age){
   `;
   const f = $('#field');
   let found=0;
-  // bushes
   for(let i=0;i<26;i++){
     const b = document.createElement('div');
     b.textContent='🌿';
     b.style.cssText=\`position:absolute;left:\${Math.random()*280}px;top:\${Math.random()*180}px;font-size:\${20+Math.random()*16}px;opacity:.55\`;
     f.appendChild(b);
   }
-  // animals
   animals.forEach(a=>{
     const el = document.createElement('button');
     el.textContent = a;
@@ -512,53 +479,5 @@ window.startHideSeek = function(mount, age){
   });
 };
   </script>
-<script>
-// ===== SAFETY PATCH (place right before </body>) =====
-
-// keep currentAge/soundOn if already defined
-window.currentAge = window.currentAge || '2–4';
-window.soundOn    = typeof window.soundOn === 'boolean' ? window.soundOn : false;
-
-// Fallback controls if missing
-window.setAge = window.setAge || function(age, btn){
-  window.currentAge = age;
-  try { document.querySelectorAll('.controls .chip').forEach(b=>b.classList.remove('active')); btn?.classList.add('active'); } catch(e){}
-  const ga = document.getElementById('gameArea');
-  if(ga) ga.innerHTML = `<h2>Age changed</h2><p>Now playing: ${age}</p>`;
-};
-
-window.toggleSound = window.toggleSound || function(){
-  window.soundOn = !window.soundOn;
-  try { document.querySelector('#soundBtn span').textContent = window.soundOn ? 'On' : 'Off'; } catch(e){}
-};
-
-// Simple speak helper if original missing
-window.speak = window.speak || function(txt){
-  try { if(window.speechSynthesis && window.soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } } catch(e){}
-};
-
-// Minimal Banana game if your new one didn't load
-window.startBanana = window.startBanana || function(mount, age){
-  if(!mount) mount = document.getElementById('gameArea');
-  mount.innerHTML = `
-    <h2>🍌 Banana Test</h2>
-    <p>If you see this, the button works. Age: ${age}</p>
-    <button id="bananaDemo">Add 1</button>
-    <p id="bananaCount">Count: 0</p>
-  `;
-  let c=0; document.getElementById('bananaDemo').onclick=()=>{ c++; document.getElementById('bananaCount').textContent='Count: '+c; speak(String(c)); };
-};
-
-// Router fallback
-window.go = window.go || function(key){
-  const mount = document.getElementById('gameArea');
-  if(key==='banana')      return window.startBanana(mount, window.currentAge);
-  if(key==='maze' || key==='memory' || key==='puzzle' || key==='hide'){
-    mount.innerHTML = `<h2>${key} (coming soon)</h2><p>Router works ✅</p>`;
-  } else {
-    mount.innerHTML = `<h2>Unknown route</h2>`;
-  }
-};
-</script>  
 </body>
 </html>
