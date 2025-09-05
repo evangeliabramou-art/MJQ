@@ -283,7 +283,6 @@ window.startBanana = function(mount, age){
       // chew if sprite is ready; else just pause briefly
       if(chewReady){
         monkey.classList.add('chew');
-        // when chew animation ends, return to idle
         const onEnd = ()=>{ monkey.classList.remove('chew'); sprite.removeEventListener('animationend', onEnd); };
         sprite.addEventListener('animationend', onEnd);
       }
@@ -495,5 +494,60 @@ window.startHideSeek = function(mount, age){
   });
 };
   </script>
+
+  <!-- ===== DEBUG GUARD (keeps app usable & shows errors) — keep this right before </body> ===== -->
+  <script>
+  (function debugGuard(){
+    // 1) Show JS errors on the page (in a small ribbon)
+    window.addEventListener('error', function(e){
+      var bar = document.getElementById('__errbar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id='__errbar';
+        bar.style.cssText='position:fixed;left:0;right:0;bottom:0;background:#ffebee;color:#b00020;padding:8px 12px;font:14px/1.3 system-ui,Arial;z-index:9999;box-shadow:0 -2px 10px rgba(0,0,0,.15)';
+        document.body.appendChild(bar);
+      }
+      bar.textContent = 'JavaScript error: ' + (e.message||'') + (e.filename? (' @ ' + e.filename + ':' + e.lineno) : '');
+    });
+
+    // 2) Ensure globals exist so buttons do something, even if earlier code failed
+    window.currentAge = window.currentAge || '2–4';
+    window.soundOn    = typeof window.soundOn === 'boolean' ? window.soundOn : false;
+
+    window.setAge = window.setAge || function(age, btn){
+      window.currentAge = age;
+      try{ document.querySelectorAll('.controls .chip').forEach(b=>b.classList.remove('active')); btn?.classList.add('active'); }catch(_){}
+      var ga = document.getElementById('gameArea');
+      if(ga) ga.innerHTML = '<h2>Age changed</h2><p>Now playing: '+age+'</p>';
+    };
+    window.toggleSound = window.toggleSound || function(){
+      window.soundOn = !window.soundOn;
+      try{ document.querySelector('#soundBtn span').textContent = window.soundOn ? 'On' : 'Off'; }catch(_){}
+    };
+    window.speak = window.speak || function(txt){
+      try{ if(window.speechSynthesis && window.soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(_){}
+    };
+
+    // Minimal banana test fallback if main function failed to define
+    window.startBanana = window.startBanana || function(mount, age){
+      mount = mount || document.getElementById('gameArea');
+      mount.innerHTML = '<h2>🍌 Banana Test (fallback)</h2><p>If you see this, router works. Age: '+age+'</p><button id="bAdd">Add 1</button><p id="bOut">Count: 0</p>';
+      var c=0, bAdd=document.getElementById('bAdd'), bOut=document.getElementById('bOut');
+      if(bAdd) bAdd.onclick=function(){ c++; bOut.textContent='Count: '+c; window.speak(String(c)); };
+    };
+
+    window.go = window.go || function(key){
+      var mount = document.getElementById('gameArea');
+      if(key==='banana')      return window.startBanana(mount, window.currentAge);
+      if(key==='maze' || key==='memory' || key==='puzzle' || key==='hide'){
+        mount.innerHTML = '<h2>'+key+' (coming soon)</h2><p>Router works ✅</p>';
+      } else {
+        mount.innerHTML = '<h2>Unknown route</h2>';
+      }
+    };
+  })();
+  </script>
+  <!-- ===== END DEBUG GUARD ===== -->
+
 </body>
 </html>
