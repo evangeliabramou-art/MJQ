@@ -3,551 +3,120 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Monkey’s Jungle Quest</title>
-
+<title>Banana Count — Minimal Test</title>
 <style>
-  :root{
-    --mint:#e9f7ef;
-    --card:#ffffff;
-    --shadow:0 10px 26px rgba(0,0,0,.10);
-    --chip:#ecf1ee;
-    --chip-active:#d7f0dd;
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e9f7ef;color:#111}
+  .wrap{max-width:980px;margin:18px auto;padding:14px}
+  h1{margin:0 0 10px}
+  .card{background:#fff;border-radius:18px;box-shadow:0 10px 26px rgba(0,0,0,.1);padding:18px;text-align:center}
+  /* scene */
+  #scene{
+    position:relative;width:340px;height:260px;margin:10px auto;
+    border-radius:16px;background:linear-gradient(#e8f7e4,#d4f0d2);
+    box-shadow:0 8px 20px rgba(0,0,0,.12);overflow:hidden;
   }
-  html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:var(--mint);color:#111;}
-
-  /* Top bar */
-  .topbar{
-    max-width:980px;margin:14px auto 20px;padding:10px 14px;
-    display:flex;align-items:center;justify-content:space-between;
-  }
-  .brand{display:flex;align-items:center;gap:12px}
-  .brand .logo{font-size:28px}
-  .brand .title{font-size:18px;font-weight:800;line-height:1.1}
-  .controls{display:flex;gap:10px;align-items:center}
-  .chip{border:0;border-radius:28px;padding:8px 14px;background:var(--chip);font-weight:700;cursor:pointer}
-  .chip.active{background:var(--chip-active)}
-
-  /* Poster menu */
-  .poster-card{
-    max-width:980px;margin:0 auto 28px;padding:14px;background:#fff;border-radius:20px;box-shadow:var(--shadow);
-  }
-  .poster-wrap{position:relative;border-radius:14px;overflow:hidden}
-  .poster{width:100%;display:block;user-select:none;-webkit-user-drag:none}
-
-  /* Hotspots */
-  .hotspot{
-    position:absolute;border:0;background:transparent;cursor:pointer;color:transparent;outline:none;border-radius:50%;z-index:2;
-  }
-  .hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
-  .hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
-  .hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
-  .hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
-  .hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
-
-  /* Game area */
-  .card{
-    max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:24px;text-align:center
-  }
-  .card h2{margin:0 0 8px;font-size:28px}
-  .card p{margin:0;font-size:18px;color:#333}
+  .ground{position:absolute;left:0;right:0;bottom:0;height:48px;background:#c5e1a5}
+  .tree{position:absolute;font-size:64px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15))}
+  .tree.left{left:28px;top:30px}
+  .tree.right{right:28px;top:30px}
+  .banana{position:absolute;font-size:26px;cursor:pointer;transition:transform .8s ease,opacity .8s ease}
+  .banana.fall{transform:translateY(150px) rotate(20deg)}
+  .banana.gone{opacity:0;pointer-events:none}
+  /* monkey: idle png + sprite sheets (optional) */
+  .monkey{position:absolute;bottom:10px;left:150px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;transition:transform .6s ease}
+  .monkey .idle{width:56px;height:56px;background:url('assets/images/monkey_sitting.PNG') no-repeat;background-size:56px 56px}
+  .monkey .sprite{width:56px;height:56px;display:none;background-repeat:no-repeat;image-rendering:auto}
+  .monkey.walk .idle{display:none}
+  .monkey.walk .sprite{display:block;background-image:url('assets/images/monkey_walk_sprites.png');background-size:224px 56px;animation:walk .6s steps(4) infinite}
+  @keyframes walk{from{background-position:0 0}to{background-position:-224px 0}}
+  .monkey.chew .idle{display:none}
+  .monkey.chew .sprite{display:block;background-image:url('assets/images/monkey_chew_sprites.png');background-size:168px 56px;animation:chew .45s steps(3) 1 forwards}
+  @keyframes chew{from{background-position:0 0}to{background-position:-168px 0}}
+  .bubble{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:38px;font-weight:900;background:#fff;padding:6px 16px;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.12);animation:pop .55s ease}
+  @keyframes pop{0%{transform:translateX(-50%) scale(.6);opacity:0}60%{transform:translateX(-50%) scale(1.1);opacity:1}100%{transform:translateX(-50%) scale(1)}}
 </style>
 </head>
-
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <span class="logo">🐒🍌</span>
-      <div class="title"><strong>Monkey’s</strong> Jungle Quest</div>
-    </div>
-    <div class="controls">
-      <span>Age:</span>
-      <button class="chip active" onclick="setAge('2–4', this)">2–4</button>
-      <button class="chip" onclick="setAge('4–6', this)">4–6</button>
-      <button id="soundBtn" class="chip" onclick="toggleSound()">🔈 <span>Off</span></button>
-    </div>
+  <div class="wrap">
+    <h1>🍌 Banana Count — Minimal Test <small style="font-weight:400;color:#555">v15</small></h1>
+    <div id="game" class="card"></div>
   </div>
 
-  <section class="poster-card" aria-label="Main menu">
-    <div class="poster-wrap">
-      <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
-      <button class="hotspot hs-banana" aria-label="Banana Game" onclick="go('banana')">Banana</button>
-      <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
-      <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
-      <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
-      <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
-    </div>
-  </section>
+<script>
+let soundOn=false; // set to true if you want speech
+function speak(txt){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(e){} }
 
-  <div id="gameArea" class="card" role="region" aria-live="polite">
-    <h2>Welcome!</h2>
-    <p>Select a game above to start.</p>
-  </div>
+(function startBanana(){
+  const age = '2–4';         // change to '4–6' to test 10 bananas
+  const max = (age==='4–6')? 10 : 5;
+  let count=0, walkReady=false, chewReady=false;
 
-  <!-- optional (can be empty) -->
-  <script src="monkey_movement.js"></script>
+  // preload optional sprite sheets (ok if missing)
+  const w=new Image(), c=new Image();
+  w.onload=()=>walkReady=true; w.src='assets/images/monkey_walk_sprites.png';
+  c.onload=()=>chewReady=true; c.src='assets/images/monkey_chew_sprites.png';
 
-  <script>
-/* =========================================================
-   GLOBALS + HELPERS
-========================================================= */
-let currentAge = '2–4';
-let soundOn    = false;
-
-const $  = (sel, root=document) => root.querySelector(sel);
-const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-
-function speak(txt){
-  try{ if(window.speechSynthesis && soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(e){}
-}
-function makeCard(title, subtitle=''){
-  return `<h2 style="margin:0 0 8px">${title}</h2>${subtitle?`<p style="margin:0 0 14px;color:#4b4b4b">${subtitle}</p>`:''}`;
-}
-
-function setAge(age, btn){
-  currentAge = age;
-  $$('.controls .chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  $('#gameArea').innerHTML = makeCard('Age changed', `Now playing: ${age}`);
-}
-function toggleSound(){
-  soundOn = !soundOn;
-  $('#soundBtn span').textContent = soundOn ? 'On' : 'Off';
-}
-function go(key){
-  const mount = $('#gameArea');
-  if(key==='banana')      startBanana(mount, currentAge);
-  else if(key==='maze')   startMaze(mount, currentAge);
-  else if(key==='memory') startMemory(mount, currentAge);
-  else if(key==='puzzle') startPuzzle(mount, currentAge);
-  else if(key==='hide')   startHideSeek(mount, currentAge);
-}
-
-/* =========================================================
-   🍌 BANANA COUNT — Idle PNG + Walk & Chew sprite sheets
-========================================================= */
-window.startBanana = function(mount, age){
-  const max = (age==='4–6') ? 10 : 5;
-  let count = 0;
-
-  // preload sprites so we know if they exist
-  const walkImg = new Image(); walkImg.src = 'assets/images/monkey_walk_sprites.png';
-  const chewImg = new Image(); chewImg.src = 'assets/images/monkey_chew_sprites.png';
-  let walkReady=false, chewReady=false;
-  walkImg.onload = ()=> walkReady=true;
-  chewImg.onload = ()=> chewReady=true;
-
-  const words = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-  const numWord = n => words[n] || String(n);
-
-  mount.innerHTML = makeCard('🍌 Banana Count', 'Tap a banana. The monkey will eat it!') + `
-    <style>
-      #scene{
-        position:relative; width:340px; height:260px; margin:10px auto;
-        border-radius:16px; background:linear-gradient(#e8f7e4,#d4f0d2);
-        box-shadow:0 8px 20px rgba(0,0,0,.12); overflow:hidden;
-      }
-      .ground{position:absolute; left:0; right:0; bottom:0; height:48px; background:#c5e1a5;}
-      .tree{position:absolute; font-size:64px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.15));}
-      .tree.left{left:28px; top:30px}
-      .tree.right{right:28px; top:30px}
-
-      /* Monkey container (we translate this) */
-      .monkey{
-        position:absolute; bottom:10px; left:150px; width:56px; height:56px;
-        display:flex; align-items:center; justify-content:center;
-        transition: transform .6s ease;
-      }
-      /* Idle PNG */
-      .monkey .idle{
-        width:56px; height:56px; display:block;
-        background-image:url('assets/images/monkey_sitting.PNG');
-        background-size:56px 56px; background-repeat:no-repeat;
-      }
-      /* Sprite sheet surface (we swap bg-image for walk/chew) */
-      .monkey .sprite{
-        width:56px; height:56px; display:none;
-        background-repeat:no-repeat; image-rendering:auto;
-      }
-      /* WALK: 4 frames (512x128 → scaled to 224x56), loop */
-      .monkey.walk .idle{ display:none; }
-      .monkey.walk .sprite{
-        display:block;
-        background-image:url('assets/images/monkey_walk_sprites.png');
-        background-size:224px 56px; /* 128*4 → 224 after scale */
-        animation: monkey-walk-steps .6s steps(4) infinite;
-      }
-      @keyframes monkey-walk-steps{
-        from{ background-position:   0   0; }
-        to  { background-position: -224px 0; }
-      }
-      /* CHEW: 3 frames (384x128 → scaled to 168x56), play once */
-      .monkey.chew .idle{ display:none; }
-      .monkey.chew .sprite{
-        display:block;
-        background-image:url('assets/images/monkey_chew_sprites.png');
-        background-size:168px 56px; /* 128*3 → 168 after scale */
-        animation: monkey-chew-steps .45s steps(3) 1 forwards;
-      }
-      @keyframes monkey-chew-steps{
-        from{ background-position:   0   0; }
-        to  { background-position: -168px 0; }
-      }
-
-      .banana{
-        position:absolute; font-size:26px; cursor:pointer; user-select:none;
-        transition: transform .8s ease, opacity .8s ease;
-      }
-      .banana.fall{ transform: translateY(150px) rotate(20deg); }
-      .banana.gone{ opacity:0; pointer-events:none; }
-
-      .bubble{
-        position:absolute; left:50%; top:10px; transform:translateX(-50%);
-        font-size:38px; font-weight:900; background:#fff; padding:6px 16px;
-        border-radius:12px; box-shadow:0 6px 14px rgba(0,0,0,.12);
-        animation: pop .55s ease; pointer-events:none;
-      }
-      @keyframes pop{0%{transform:translateX(-50%) scale(.6);opacity:0}
-                     60%{transform:translateX(-50%) scale(1.1);opacity:1}
-                     100%{transform:translateX(-50%) scale(1)}}
-      .toast{
-        position:absolute; bottom:54px; left:50%; transform:translateX(-50%);
-        background:#fff; padding:6px 12px; border-radius:10px; font-weight:700;
-        box-shadow:0 6px 14px rgba(0,0,0,.12);
-      }
-    </style>
-
-    <div id="scene" aria-label="Banana game scene">
+  const game = document.getElementById('game');
+  game.innerHTML = `
+    <h2 style="margin:0 0 6px">Tap the bananas. Monkey will eat them!</h2>
+    <div id="scene" role="img" aria-label="Banana scene">
       <div class="tree left">🌳</div>
       <div class="tree right">🌳</div>
-
-      <div id="monkey" class="monkey" aria-label="Monkey">
-        <div class="idle" aria-hidden="true"></div>
-        <div class="sprite" aria-hidden="true"></div>
-      </div>
-
+      <div id="monkey" class="monkey"><div class="idle"></div><div class="sprite"></div></div>
       <div class="ground"></div>
     </div>
     <p id="countTxt" style="margin-top:8px;font-weight:800">Count: 0 / ${max}</p>
   `;
 
-  const scene   = document.getElementById('scene');
-  const monkey  = document.getElementById('monkey');
-  const sprite  = monkey.querySelector('.sprite');
-  const countTxt= document.getElementById('countTxt');
+  const scene=document.getElementById('scene');
+  const monkey=document.getElementById('monkey');
+  const sprite=monkey.querySelector('.sprite');
+  const countTxt=document.getElementById('countTxt');
 
   function spawn(){
-    count = 0;
-    countTxt.textContent = `Count: 0 / ${max}`;
-    scene.querySelectorAll('.banana,.bubble,.toast').forEach(x=>x.remove());
-    monkey.classList.remove('walk','chew'); // ensure idle
+    count=0; countTxt.textContent=`Count: 0 / ${max}`;
+    scene.querySelectorAll('.banana,.bubble').forEach(n=>n.remove());
+    monkey.classList.remove('walk','chew');
 
     for(let i=0;i<max;i++){
-      const leftSide = i % 2 === 0;
-      const baseX = leftSide ? 60 : (340-70);
-      const x = baseX + (Math.random()*40 - 20);
+      const left = i%2===0; const baseX = left?60:270;
+      const x = baseX + (Math.random()*40-20);
       const y = 64 + Math.random()*30;
-
-      const el = document.createElement('div');
-      el.className = 'banana';
-      el.textContent = '🍌';
-      el.style.left = (x-10)+'px';
-      el.style.top  = y+'px';
-      el.dataset.x = x.toString();
-      el.addEventListener('click', ()=>dropAndEat(el));
-      scene.appendChild(el);
+      const b=document.createElement('div');
+      b.className='banana'; b.textContent='🍌';
+      b.style.left=(x-10)+'px'; b.style.top=y+'px'; b.dataset.x=x;
+      b.addEventListener('click', ()=>dropAndEat(b));
+      scene.appendChild(b);
     }
-
-    const tip = document.createElement('div');
-    tip.className='toast';
-    tip.textContent='Tap a banana!';
-    scene.appendChild(tip);
-    setTimeout(()=>tip.remove(), 1200);
   }
 
   function dropAndEat(el){
     if(el.classList.contains('fall')) return;
-    const x = +el.dataset.x;
-    el.classList.add('fall');
+    const x=+el.dataset.x; el.classList.add('fall');
 
-    // walk to banana (use sprite sheet if loaded; else stay idle)
-    const targetX = Math.min(300, Math.max(10, x-20));
-    if(walkReady){ monkey.classList.add('walk'); }
-    monkey.style.transform = `translateX(${targetX-150}px)`;
+    const targetX=Math.min(300,Math.max(10,x-20));
+    if(walkReady) monkey.classList.add('walk');
+    monkey.style.transform=`translateX(${targetX-150}px)`;
 
     setTimeout(()=>{
       el.classList.add('gone');
-
-      // stop walking
       monkey.classList.remove('walk');
 
-      // chew if sprite is ready; else just pause briefly
       if(chewReady){
         monkey.classList.add('chew');
-        const onEnd = ()=>{ monkey.classList.remove('chew'); sprite.removeEventListener('animationend', onEnd); };
-        sprite.addEventListener('animationend', onEnd);
+        sprite.addEventListener('animationend', function onEnd(){ monkey.classList.remove('chew'); sprite.removeEventListener('animationend', onEnd); });
       }
 
-      count++;
-      countTxt.textContent = `Count: ${count} / ${max}`;
+      count++; countTxt.textContent=`Count: ${count} / ${max}`;
+      const bub=document.createElement('div'); bub.className='bubble'; bub.textContent=count; scene.appendChild(bub);
+      speak(String(count)); setTimeout(()=>bub.remove(),650);
 
-      const b = document.createElement('div');
-      b.className='bubble'; b.textContent = count; scene.appendChild(b);
-      speak(numWord(count));
-      if(soundOn) setTimeout(()=>speak('yum'), 250);
-      setTimeout(()=>b.remove(), 650);
-
-      if(count===max){
-        const t = document.createElement('div');
-        t.className='toast'; t.textContent='Great job! 👏';
-        scene.appendChild(t);
-        setTimeout(()=>{ t.remove(); spawn(); }, 1000);
-      }
-    }, 620);
+      if(count===max){ setTimeout(spawn,800); }
+    },620);
   }
 
   spawn();
-};
-
-/* =========================================================
-   🐍 SNAKE MAZE — Reach the ⭐
-========================================================= */
-window.startMaze = function(mount, age){
-  const size = (age==='4–6')? 11 : 9;
-  const stepMs = 110;
-  const cell = 28;
-  let head = {x:1, y:1};
-  let goal = {x:size-2, y:size-2};
-  let dir = {x:1,y:0};
-  let playing = true;
-
-  const grid = Array.from({length:size},(_,y)=>
-    Array.from({length:size},(_,x)=> (x===0||y===0||x===size-1||y===size-1)?1:0)
-  );
-  const blocks = (age==='4–6')? 16 : 10;
-  let placed = 0;
-  while(placed<blocks){
-    const x = 1+Math.floor(Math.random()*(size-2));
-    const y = 1+Math.floor(Math.random()*(size-2));
-    if((x===head.x&&y===head.y)||(x===goal.x&&y===goal.y)) continue;
-    if(grid[y][x]===0){ grid[y][x]=1; placed++; }
-  }
-  grid[head.y][head.x]=0; grid[goal.y][goal.x]=0;
-
-  mount.innerHTML = makeCard('🐍 Snake Game','Reach the ⭐ without touching walls') + `
-    <div id="mazeWrap" style="display:inline-block;background:#f7fff4;border-radius:12px;padding:8px;box-shadow:0 6px 16px rgba(0,0,0,.12)">
-      <canvas id="maze" width="${size*cell}" height="${size*cell}" style="border-radius:8px"></canvas>
-    </div>
-    <div style="margin-top:10px;display:flex;justify-content:center;gap:10px">
-      <button class="d" data-x="0" data-y="-1">⬆️</button>
-      <button class="d" data-x="-1" data-y="0">⬅️</button>
-      <button class="d" data-x="1" data-y="0">➡️</button>
-      <button class="d" data-x="0" data-y="1">⬇️</button>
-    </div>
-  `;
-  $$('#gameArea .d').forEach(b=>b.style.cssText='padding:10px 14px;border:0;border-radius:10px;background:#c8e6c9;font-weight:800');
-
-  const ctx = $('#maze').getContext('2d');
-  function draw(){
-    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    ctx.fillStyle='#e6ffe0'; ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    ctx.fillStyle='#2e7d32';
-    for(let y=0;y<size;y++) for(let x=0;x<size;x++){
-      if(grid[y][x]) ctx.fillRect(x*cell,y*cell,cell,cell);
-    }
-    ctx.fillStyle='#ffd54f';
-    ctx.fillRect(goal.x*cell+6, goal.y*cell+6, cell-12, cell-12);
-    ctx.fillStyle='#4caf50';
-    ctx.beginPath();
-    ctx.arc(head.x*cell+cell/2, head.y*cell+cell/2, cell*0.38, 0, Math.PI*2);
-    ctx.fill();
-  }
-  function tick(){
-    if(!playing) return;
-    const nx=head.x+dir.x, ny=head.y+dir.y;
-    if(grid[ny]?.[nx]){ playing=false; speak('Oops!'); alert('Oops! You hit a wall.'); return; }
-    head={x:nx,y:ny};
-    draw();
-    if(head.x===goal.x && head.y===goal.y){ playing=false; speak('You win!'); setTimeout(()=>alert('You win!'),50); return; }
-    setTimeout(tick, stepMs);
-  }
-  draw(); tick();
-  $$('#gameArea .d').forEach(b=>b.addEventListener('click',()=>{ dir={x:+b.dataset.x, y:+b.dataset.y}; }));
-  let sx,sy;
-  $('#maze').addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; });
-  $('#maze').addEventListener('touchend',e=>{
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if(Math.abs(dx)>Math.abs(dy)) dir={x: dx>0?1:-1, y:0}; else dir={x:0, y:dy>0?1:-1};
-  });
-};
-
-/* =========================================================
-   🧠 MEMORY MATCH
-========================================================= */
-window.startMemory = function(mount, age){
-  const pairs = (age==='4–6')? 6 : 4;
-  const pool = ['🦁','🦄','🦊','🐵','🐸','🦋','🌸','🍄','🍌','🦓'];
-  const icons = pool.slice(0,pairs);
-  const deck = [...icons, ...icons].sort(()=>Math.random()-0.5);
-  let first=null, lock=false, found=0, moves=0;
-
-  mount.innerHTML = makeCard('🧠 Memory Game',`Find all ${pairs} pairs`) + `
-    <div id="grid" style="display:grid;grid-template-columns:repeat(4,78px);gap:10px;justify-content:center;margin-top:8px"></div>
-    <p id="moves" style="margin-top:10px">Moves: 0</p>
-  `;
-  const g = $('#grid');
-  deck.forEach((ico,i)=>{
-    const el = document.createElement('button');
-    el.className='card';
-    el.dataset.icon = ico;
-    el.style.cssText='width:78px;height:78px;border:0;border-radius:12px;background:#90caf9;font-size:0;box-shadow:0 6px 12px rgba(0,0,0,.12)';
-    el.innerHTML = `<span style="font-size:44px;display:none">${ico}</span>`;
-    el.addEventListener('click',()=>{
-      if(lock || el.classList.contains('done') || $('span',el).style.display==='block') return;
-      $('span',el).style.display='block';
-      moves++; $('#moves').textContent='Moves: '+moves;
-      if(!first){ first=el; return; }
-      if(first.dataset.icon===el.dataset.icon){
-        first.classList.add('done'); el.classList.add('done');
-        found++; speak('Match');
-        if(found===pairs) setTimeout(()=>{ speak('Great job!'); alert('Great job!'); }, 200);
-        first=null;
-      }else{
-        lock=true; setTimeout(()=>{ $('span',first).style.display='none'; $('span',el).style.display='none'; first=null; lock=false; }, 700);
-      }
-    });
-    g.appendChild(el);
-  });
-};
-
-/* =========================================================
-   🧩 PUZZLE (3×2 for 2–4, 3×3 for 4–6)
-========================================================= */
-window.startPuzzle = function(mount, age){
-  const rows = (age==='4–6')? 3 : 2;
-  const cols = 3;
-  const img = 'assets/images/monkey_sitting.PNG';
-  const W = 300, H = rows===2? 240 : 300;
-
-  mount.innerHTML = makeCard('🧩 Puzzle Game', `Drag the tiles to fix the picture`) + `
-    <div id="pz" style="width:${W}px;margin:10px auto;display:grid;grid-template-columns:repeat(${cols},1fr);gap:6px"></div>
-  `;
-  const pz = $('#pz');
-  const tiles=[];
-  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-    const i = r*cols+c;
-    const div = document.createElement('div');
-    div.className='t'; div.draggable=true; div.dataset.correct=i;
-    div.style.cssText=\`width:\${Math.floor((W-(cols-1)*6)/cols)}px;height:\${Math.floor((H-(rows-1)*6)/rows)}px;border-radius:8px;background:#eee;background-image:url('\${img}');background-size:\${W}px \${H}px;background-position:\${-c*(W/cols)}px \${-r*(H/rows)}px;box-shadow:0 4px 10px rgba(0,0,0,.12)\`;
-    tiles.push(div);
-  }
-  tiles.sort(()=>Math.random()-0.5).forEach(el=>pz.appendChild(el));
-
-  let drag=null;
-  pz.addEventListener('dragstart',e=>drag=e.target);
-  pz.addEventListener('dragover',e=>e.preventDefault());
-  pz.addEventListener('drop',e=>{
-    e.preventDefault();
-    const target = e.target.closest('.t'); if(!target || target===drag) return;
-    const a = Array.from(pz.children).indexOf(drag);
-    const b = Array.from(pz.children).indexOf(target);
-    if(a<b) pz.insertBefore(target, drag); else pz.insertBefore(drag, target);
-    checkWin();
-  });
-  function checkWin(){
-    const ok = $$('.t', pz).every((el,idx)=> +el.dataset.correct===idx);
-    if(ok){ speak('Puzzle complete'); setTimeout(()=>alert('Puzzle complete!'), 100); }
-  }
-};
-
-/* =========================================================
-   👀 HIDE & SEEK — find all animals
-========================================================= */
-window.startHideSeek = function(mount, age){
-  const animals = age==='4–6' ? ['🦁','🐵','🦊','🦓','🦉'] : ['🐵','🦊','🦉'];
-  mount.innerHTML = makeCard('👀 Hide & Seek', 'Tap all the animals hidden in the field') + `
-    <div id="field" style="position:relative;width:320px;height:220px;margin:10px auto;border-radius:14px;background:linear-gradient(#e8f7e4,#d4f0d2);box-shadow:0 6px 16px rgba(0,0,0,.12);overflow:hidden"></div>
-    <p id="foundTxt">Found: 0 / ${animals.length}</p>
-  `;
-  const f = $('#field');
-  let found=0;
-  for(let i=0;i<26;i++){
-    const b = document.createElement('div');
-    b.textContent='🌿';
-    b.style.cssText=\`position:absolute;left:\${Math.random()*280}px;top:\${Math.random()*180}px;font-size:\${20+Math.random()*16}px;opacity:.55\`;
-    f.appendChild(b);
-  }
-  animals.forEach(a=>{
-    const el = document.createElement('button');
-    el.textContent = a;
-    el.style.cssText = 'position:absolute;border:0;background:transparent;font-size:30px;cursor:pointer';
-    el.style.left = (10+Math.random()*260)+'px';
-    el.style.top  = (10+Math.random()*160)+'px';
-    el.addEventListener('click',()=>{
-      el.style.opacity='.25';
-      el.disabled=true;
-      found++; $('#foundTxt').textContent=\`Found: \${found} / ${animals.length}\`;
-      speak('Found one');
-      if(found===animals.length){ speak('You found them all'); setTimeout(()=>alert('You found them all!'),100); }
-    });
-    f.appendChild(el);
-  });
-};
-  </script>
-
-  <!-- ===== DEBUG GUARD (keeps app usable & shows errors) — keep this right before </body> ===== -->
-  <script>
-  (function debugGuard(){
-    // 1) Show JS errors on the page (in a small ribbon)
-    window.addEventListener('error', function(e){
-      var bar = document.getElementById('__errbar');
-      if(!bar){
-        bar = document.createElement('div');
-        bar.id='__errbar';
-        bar.style.cssText='position:fixed;left:0;right:0;bottom:0;background:#ffebee;color:#b00020;padding:8px 12px;font:14px/1.3 system-ui,Arial;z-index:9999;box-shadow:0 -2px 10px rgba(0,0,0,.15)';
-        document.body.appendChild(bar);
-      }
-      bar.textContent = 'JavaScript error: ' + (e.message||'') + (e.filename? (' @ ' + e.filename + ':' + e.lineno) : '');
-    });
-
-    // 2) Ensure globals exist so buttons do something, even if earlier code failed
-    window.currentAge = window.currentAge || '2–4';
-    window.soundOn    = typeof window.soundOn === 'boolean' ? window.soundOn : false;
-
-    window.setAge = window.setAge || function(age, btn){
-      window.currentAge = age;
-      try{ document.querySelectorAll('.controls .chip').forEach(b=>b.classList.remove('active')); btn?.classList.add('active'); }catch(_){}
-      var ga = document.getElementById('gameArea');
-      if(ga) ga.innerHTML = '<h2>Age changed</h2><p>Now playing: '+age+'</p>';
-    };
-    window.toggleSound = window.toggleSound || function(){
-      window.soundOn = !window.soundOn;
-      try{ document.querySelector('#soundBtn span').textContent = window.soundOn ? 'On' : 'Off'; }catch(_){}
-    };
-    window.speak = window.speak || function(txt){
-      try{ if(window.speechSynthesis && window.soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(_){}
-    };
-
-    // Minimal banana test fallback if main function failed to define
-    window.startBanana = window.startBanana || function(mount, age){
-      mount = mount || document.getElementById('gameArea');
-      mount.innerHTML = '<h2>🍌 Banana Test (fallback)</h2><p>If you see this, router works. Age: '+age+'</p><button id="bAdd">Add 1</button><p id="bOut">Count: 0</p>';
-      var c=0, bAdd=document.getElementById('bAdd'), bOut=document.getElementById('bOut');
-      if(bAdd) bAdd.onclick=function(){ c++; bOut.textContent='Count: '+c; window.speak(String(c)); };
-    };
-
-    window.go = window.go || function(key){
-      var mount = document.getElementById('gameArea');
-      if(key==='banana')      return window.startBanana(mount, window.currentAge);
-      if(key==='maze' || key==='memory' || key==='puzzle' || key==='hide'){
-        mount.innerHTML = '<h2>'+key+' (coming soon)</h2><p>Router works ✅</p>';
-      } else {
-        mount.innerHTML = '<h2>Unknown route</h2>';
-      }
-    };
-  })();
-  </script>
-  <!-- ===== END DEBUG GUARD ===== -->
-
+})();
+</script>
 </body>
 </html>
