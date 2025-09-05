@@ -15,34 +15,28 @@
   }
   html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:var(--mint);color:#111;}
 
-  /* === Top bar === */
+  /* Top bar */
   .topbar{
     max-width:980px;margin:14px auto 20px;padding:10px 14px;
     display:flex;align-items:center;justify-content:space-between;
   }
   .brand{display:flex;align-items:center;gap:12px}
-  .brand .logo{font-size:28px;line-height:1}
+  .brand .logo{font-size:28px}
   .brand .title{font-size:18px;font-weight:800;line-height:1.1}
   .controls{display:flex;gap:10px;align-items:center}
   .chip{border:0;border-radius:28px;padding:8px 14px;background:var(--chip);font-weight:700;cursor:pointer}
   .chip.active{background:var(--chip-active)}
 
-  /* === Poster menu card === */
+  /* Poster menu */
   .poster-card{
-    max-width:980px;
-    margin:0 auto 28px;
-    padding:14px;
-    background:#fff;
-    border-radius:20px;
-    box-shadow:var(--shadow);
+    max-width:980px;margin:0 auto 28px;padding:14px;background:#fff;border-radius:20px;box-shadow:var(--shadow);
   }
-  .poster-wrap{ position:relative; border-radius:14px; overflow:hidden; }
-  .poster{ width:100%; display:block; user-select:none; -webkit-user-drag:none; }
+  .poster-wrap{position:relative;border-radius:14px;overflow:hidden}
+  .poster{width:100%;display:block;user-select:none;-webkit-user-drag:none}
 
-  /* hotspots on poster */
+  /* Hotspots */
   .hotspot{
-    position:absolute; border:0; background:transparent; cursor:pointer; color:transparent;
-    outline:none; border-radius:50%; z-index:2;
+    position:absolute;border:0;background:transparent;cursor:pointer;color:transparent;outline:none;border-radius:50%;z-index:2;
   }
   .hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
   .hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
@@ -50,10 +44,9 @@
   .hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
   .hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
 
-  /* Game card */
+  /* Game area */
   .card{
-    max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;
-    box-shadow:var(--shadow);padding:24px;text-align:center
+    max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:24px;text-align:center
   }
   .card h2{margin:0 0 8px;font-size:28px}
   .card p{margin:0;font-size:18px;color:#333}
@@ -104,17 +97,10 @@ const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
 function speak(txt){
-  try{
-    if(window.speechSynthesis && soundOn){
-      speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
-    }
-  }catch(e){}
+  try{ if(window.speechSynthesis && soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(e){}
 }
 function makeCard(title, subtitle=''){
-  return `
-    <h2 style="margin:0 0 8px">${title}</h2>
-    ${subtitle?`<p style="margin:0 0 14px;color:#4b4b4b">${subtitle}</p>`:''}
-  `;
+  return `<h2 style="margin:0 0 8px">${title}</h2>${subtitle?`<p style="margin:0 0 14px;color:#4b4b4b">${subtitle}</p>`:''}`;
 }
 
 function setAge(age, btn){
@@ -137,12 +123,18 @@ function go(key){
 }
 
 /* =========================================================
-   🍌 BANANA COUNT — Tap bananas → they fall → monkey walks & chews
-   Ages 2–4 → count to 5; Ages 4–6 → count to 10; shows big number & speaks it
+   🍌 BANANA COUNT — Idle PNG + Walk & Chew sprite sheets
 ========================================================= */
 window.startBanana = function(mount, age){
   const max = (age==='4–6') ? 10 : 5;
   let count = 0;
+
+  // preload sprites so we know if they exist
+  const walkImg = new Image(); walkImg.src = 'assets/images/monkey_walk_sprites.png';
+  const chewImg = new Image(); chewImg.src = 'assets/images/monkey_chew_sprites.png';
+  let walkReady=false, chewReady=false;
+  walkImg.onload = ()=> walkReady=true;
+  chewImg.onload = ()=> chewReady=true;
 
   const words = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
   const numWord = n => words[n] || String(n);
@@ -159,33 +151,54 @@ window.startBanana = function(mount, age){
       .tree.left{left:28px; top:30px}
       .tree.right{right:28px; top:30px}
 
+      /* Monkey container (we translate this) */
+      .monkey{
+        position:absolute; bottom:10px; left:150px; width:56px; height:56px;
+        display:flex; align-items:center; justify-content:center;
+        transition: transform .6s ease;
+      }
+      /* Idle PNG */
+      .monkey .idle{
+        width:56px; height:56px; display:block;
+        background-image:url('assets/images/monkey_sitting.PNG');
+        background-size:56px 56px; background-repeat:no-repeat;
+      }
+      /* Sprite sheet surface (we swap bg-image for walk/chew) */
+      .monkey .sprite{
+        width:56px; height:56px; display:none;
+        background-repeat:no-repeat; image-rendering:auto;
+      }
+      /* WALK: 4 frames (512x128 → scaled to 224x56), loop */
+      .monkey.walk .idle{ display:none; }
+      .monkey.walk .sprite{
+        display:block;
+        background-image:url('assets/images/monkey_walk_sprites.png');
+        background-size:224px 56px; /* 128*4 → 224 after scale */
+        animation: monkey-walk-steps .6s steps(4) infinite;
+      }
+      @keyframes monkey-walk-steps{
+        from{ background-position:   0   0; }
+        to  { background-position: -224px 0; }
+      }
+      /* CHEW: 3 frames (384x128 → scaled to 168x56), play once */
+      .monkey.chew .idle{ display:none; }
+      .monkey.chew .sprite{
+        display:block;
+        background-image:url('assets/images/monkey_chew_sprites.png');
+        background-size:168px 56px; /* 128*3 → 168 after scale */
+        animation: monkey-chew-steps .45s steps(3) 1 forwards;
+      }
+      @keyframes monkey-chew-steps{
+        from{ background-position:   0   0; }
+        to  { background-position: -168px 0; }
+      }
+
       .banana{
         position:absolute; font-size:26px; cursor:pointer; user-select:none;
         transition: transform .8s ease, opacity .8s ease;
       }
       .banana.fall{ transform: translateY(150px) rotate(20deg); }
       .banana.gone{ opacity:0; pointer-events:none; }
-
-      /* Monkey sprite (PNG) + emoji fallback */
-      .monkey{
-        position:absolute; bottom:10px; left:150px; width:56px; height:56px;
-        display:flex; align-items:center; justify-content:center;
-        transition: transform .6s ease;
-      }
-      .monkey img{ width:56px; height:56px; display:block; image-rendering:auto; }
-      .monkey .emoji{ font-size:42px; display:none; }
-      .monkey.walk{ animation: walk-bob .6s infinite ease-in-out; }
-      .monkey.chew{ animation: chew .45s ease-in-out 3; }
-
-      @keyframes walk-bob{
-        0%,100%{ transform: translateY(0); }
-        50%{ transform: translateY(-4px); }
-      }
-      @keyframes chew{
-        0%{ transform: scale(1) rotate(0deg); }
-        50%{ transform: scale(0.96) rotate(-3deg); }
-        100%{ transform: scale(1) rotate(0deg); }
-      }
 
       .bubble{
         position:absolute; left:50%; top:10px; transform:translateX(-50%);
@@ -208,11 +221,8 @@ window.startBanana = function(mount, age){
       <div class="tree right">🌳</div>
 
       <div id="monkey" class="monkey" aria-label="Monkey">
-        <img id="monkeyImg"
-             src="assets/images/monkey_walk.png"
-             onerror="this.onerror=null;this.src='assets/images/monkey_sitting.PNG';this.addEventListener('error',()=>{this.style.display='none';document.getElementById('monkeyEmoji').style.display='block';});"
-             alt="Monkey">
-        <div id="monkeyEmoji" class="emoji">🐒</div>
+        <div class="idle" aria-hidden="true"></div>
+        <div class="sprite" aria-hidden="true"></div>
       </div>
 
       <div class="ground"></div>
@@ -222,12 +232,14 @@ window.startBanana = function(mount, age){
 
   const scene   = document.getElementById('scene');
   const monkey  = document.getElementById('monkey');
+  const sprite  = monkey.querySelector('.sprite');
   const countTxt= document.getElementById('countTxt');
 
   function spawn(){
     count = 0;
     countTxt.textContent = `Count: 0 / ${max}`;
     scene.querySelectorAll('.banana,.bubble,.toast').forEach(x=>x.remove());
+    monkey.classList.remove('walk','chew'); // ensure idle
 
     for(let i=0;i<max;i++){
       const leftSide = i % 2 === 0;
@@ -240,7 +252,7 @@ window.startBanana = function(mount, age){
       el.textContent = '🍌';
       el.style.left = (x-10)+'px';
       el.style.top  = y+'px';
-      el.dataset.x = x;
+      el.dataset.x = x.toString();
       el.addEventListener('click', ()=>dropAndEat(el));
       scene.appendChild(el);
     }
@@ -257,27 +269,31 @@ window.startBanana = function(mount, age){
     const x = +el.dataset.x;
     el.classList.add('fall');
 
-    // walk toward the banana
+    // walk to banana (use sprite sheet if loaded; else stay idle)
     const targetX = Math.min(300, Math.max(10, x-20));
-    monkey.classList.add('walk');
+    if(walkReady){ monkey.classList.add('walk'); }
     monkey.style.transform = `translateX(${targetX-150}px)`;
 
     setTimeout(()=>{
-      // reached → eat
       el.classList.add('gone');
+
+      // stop walking
       monkey.classList.remove('walk');
-      monkey.classList.add('chew');
-      setTimeout(()=>monkey.classList.remove('chew'), 900);
+
+      // chew if sprite is ready; else just pause briefly
+      if(chewReady){
+        monkey.classList.add('chew');
+        // when chew animation ends, return to idle
+        const onEnd = ()=>{ monkey.classList.remove('chew'); sprite.removeEventListener('animationend', onEnd); };
+        sprite.addEventListener('animationend', onEnd);
+      }
 
       count++;
       countTxt.textContent = `Count: ${count} / ${max}`;
 
       const b = document.createElement('div');
-      b.className='bubble';
-      b.textContent = count;
-      scene.appendChild(b);
-
-      speak((['one','two','three','four','five','six','seven','eight','nine','ten'])[count-1] || String(count));
+      b.className='bubble'; b.textContent = count; scene.appendChild(b);
+      speak(numWord(count));
       if(soundOn) setTimeout(()=>speak('yum'), 250);
       setTimeout(()=>b.remove(), 650);
 
@@ -287,7 +303,7 @@ window.startBanana = function(mount, age){
         scene.appendChild(t);
         setTimeout(()=>{ t.remove(); spawn(); }, 1000);
       }
-    }, 620); // allow some walk time before "eat"
+    }, 620);
   }
 
   spawn();
