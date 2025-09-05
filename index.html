@@ -3,13 +3,41 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Banana Count — Minimal Test</title>
+<title>Monkey’s Jungle Quest</title>
+
 <style>
-  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e9f7ef;color:#111}
-  .wrap{max-width:980px;margin:18px auto;padding:14px}
-  h1{margin:0 0 10px}
-  .card{background:#fff;border-radius:18px;box-shadow:0 10px 26px rgba(0,0,0,.1);padding:18px;text-align:center}
-  /* scene */
+  :root{
+    --mint:#e9f7ef; --card:#ffffff; --shadow:0 10px 26px rgba(0,0,0,.10);
+    --chip:#ecf1ee; --chip-active:#d7f0dd;
+  }
+  html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:var(--mint);color:#111;}
+
+  /* Top bar */
+  .topbar{max-width:980px;margin:14px auto 20px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .logo{font-size:28px}
+  .brand .title{font-size:18px;font-weight:800}
+  .controls{display:flex;gap:10px;align-items:center}
+  .chip{border:0;border-radius:28px;padding:8px 14px;background:var(--chip);font-weight:700;cursor:pointer}
+  .chip.active{background:var(--chip-active)}
+
+  /* Poster card + hotspots */
+  .poster-card{max-width:980px;margin:0 auto 28px;padding:14px;background:#fff;border-radius:20px;box-shadow:var(--shadow)}
+  .poster-wrap{position:relative;border-radius:14px;overflow:hidden}
+  .poster{width:100%;display:block;user-select:none;-webkit-user-drag:none}
+  .hotspot{position:absolute;border:0;background:transparent;cursor:pointer;color:transparent;outline:none;border-radius:50%;z-index:2}
+  .hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
+  .hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
+  .hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
+  .hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
+  .hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
+
+  /* Game area card */
+  .card{max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;box-shadow:var(--shadow);padding:24px;text-align:center}
+  .card h2{margin:0 0 8px;font-size:28px}
+  .card p{margin:0;font-size:18px;color:#333}
+
+  /* ===== Banana game styles (global to avoid template nesting issues) ===== */
   #scene{
     position:relative;width:340px;height:260px;margin:10px auto;
     border-radius:16px;background:linear-gradient(#e8f7e4,#d4f0d2);
@@ -22,43 +50,86 @@
   .banana{position:absolute;font-size:26px;cursor:pointer;transition:transform .8s ease,opacity .8s ease}
   .banana.fall{transform:translateY(150px) rotate(20deg)}
   .banana.gone{opacity:0;pointer-events:none}
-  /* monkey: idle png + sprite sheets (optional) */
+
+  /* Monkey: idle PNG + (optional) sprite sheets */
   .monkey{position:absolute;bottom:10px;left:150px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;transition:transform .6s ease}
   .monkey .idle{width:56px;height:56px;background:url('assets/images/monkey_sitting.PNG') no-repeat;background-size:56px 56px}
   .monkey .sprite{width:56px;height:56px;display:none;background-repeat:no-repeat;image-rendering:auto}
+  /* walk sprites: 4 frames (512x128 -> 224x56) */
   .monkey.walk .idle{display:none}
   .monkey.walk .sprite{display:block;background-image:url('assets/images/monkey_walk_sprites.png');background-size:224px 56px;animation:walk .6s steps(4) infinite}
   @keyframes walk{from{background-position:0 0}to{background-position:-224px 0}}
+  /* chew sprites: 3 frames (384x128 -> 168x56) */
   .monkey.chew .idle{display:none}
   .monkey.chew .sprite{display:block;background-image:url('assets/images/monkey_chew_sprites.png');background-size:168px 56px;animation:chew .45s steps(3) 1 forwards}
   @keyframes chew{from{background-position:0 0}to{background-position:-168px 0}}
+
   .bubble{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:38px;font-weight:900;background:#fff;padding:6px 16px;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.12);animation:pop .55s ease}
   @keyframes pop{0%{transform:translateX(-50%) scale(.6);opacity:0}60%{transform:translateX(-50%) scale(1.1);opacity:1}100%{transform:translateX(-50%) scale(1)}}
 </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <h1>🍌 Banana Count — Minimal Test <small style="font-weight:400;color:#555">v15</small></h1>
-    <div id="game" class="card"></div>
+  <div class="topbar">
+    <div class="brand">
+      <span class="logo">🐒🍌</span>
+      <div class="title"><strong>Monkey’s</strong> Jungle Quest</div>
+    </div>
+    <div class="controls">
+      <span>Age:</span>
+      <button class="chip active" onclick="setAge('2–4', this)">2–4</button>
+      <button class="chip" onclick="setAge('4–6', this)">4–6</button>
+      <button id="soundBtn" class="chip" onclick="toggleSound()">🔈 <span>Off</span></button>
+    </div>
   </div>
 
-<script>
-let soundOn=false; // set to true if you want speech
-function speak(txt){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } }catch(e){} }
+  <section class="poster-card" aria-label="Main menu">
+    <div class="poster-wrap">
+      <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
+      <button class="hotspot hs-banana" aria-label="Banana Game" onclick="go('banana')">Banana</button>
+      <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
+      <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
+      <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
+      <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
+    </div>
+  </section>
 
-(function startBanana(){
-  const age = '2–4';         // change to '4–6' to test 10 bananas
+  <div id="gameArea" class="card" role="region" aria-live="polite">
+    <h2>Welcome!</h2>
+    <p>Select a game above to start.</p>
+  </div>
+
+  <script>
+/* ===== Globals + helpers ===== */
+let currentAge = '2–4';
+let soundOn=false;
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function speak(t){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(t)); } }catch(e){} }
+function makeCard(title,sub=''){ return `<h2 style="margin:0 0 8px">${title}</h2>${sub?`<p style="margin:0 0 14px;color:#4b4b4b">${sub}</p>`:''}`; }
+
+function setAge(age,btn){ currentAge=age; $$('.controls .chip').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); $('#gameArea').innerHTML=makeCard('Age changed',`Now playing: ${age}`); }
+function toggleSound(){ soundOn=!soundOn; $('#soundBtn span').textContent = soundOn ? 'On':'Off'; }
+function go(key){
+  const m=$('#gameArea');
+  if(key==='banana') startBanana(m,currentAge);
+  else if(key==='maze')   m.innerHTML=makeCard('🐍 Snake Game','(coming soon)');
+  else if(key==='memory') m.innerHTML=makeCard('🧠 Memory Game','(coming soon)');
+  else if(key==='puzzle') m.innerHTML=makeCard('🧩 Puzzle Game','(coming soon)');
+  else if(key==='hide')   m.innerHTML=makeCard('👀 Hide & Seek','(coming soon)');
+}
+
+/* ===== 🍌 Banana Count (works like your minimal test) ===== */
+function startBanana(mount, age){
   const max = (age==='4–6')? 10 : 5;
   let count=0, walkReady=false, chewReady=false;
 
-  // preload optional sprite sheets (ok if missing)
+  // preload optional sprite sheets (if missing, idle still works)
   const w=new Image(), c=new Image();
   w.onload=()=>walkReady=true; w.src='assets/images/monkey_walk_sprites.png';
   c.onload=()=>chewReady=true; c.src='assets/images/monkey_chew_sprites.png';
 
-  const game = document.getElementById('game');
-  game.innerHTML = `
-    <h2 style="margin:0 0 6px">Tap the bananas. Monkey will eat them!</h2>
+  mount.innerHTML = makeCard('🍌 Banana Count','Tap a banana. The monkey will eat it!') + `
     <div id="scene" role="img" aria-label="Banana scene">
       <div class="tree left">🌳</div>
       <div class="tree right">🌳</div>
@@ -68,24 +139,19 @@ function speak(txt){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis
     <p id="countTxt" style="margin-top:8px;font-weight:800">Count: 0 / ${max}</p>
   `;
 
-  const scene=document.getElementById('scene');
-  const monkey=document.getElementById('monkey');
-  const sprite=monkey.querySelector('.sprite');
-  const countTxt=document.getElementById('countTxt');
+  const scene=$('#scene'), monkey=$('#monkey'), sprite=$('.sprite',monkey), countTxt=$('#countTxt');
 
   function spawn(){
     count=0; countTxt.textContent=`Count: 0 / ${max}`;
-    scene.querySelectorAll('.banana,.bubble').forEach(n=>n.remove());
+    $$('.banana,.bubble',scene).forEach(n=>n.remove());
     monkey.classList.remove('walk','chew');
 
     for(let i=0;i<max;i++){
-      const left = i%2===0; const baseX = left?60:270;
-      const x = baseX + (Math.random()*40-20);
-      const y = 64 + Math.random()*30;
+      const left=i%2===0, baseX=left?60:270;
+      const x=baseX+(Math.random()*40-20), y=64+Math.random()*30;
       const b=document.createElement('div');
-      b.className='banana'; b.textContent='🍌';
-      b.style.left=(x-10)+'px'; b.style.top=y+'px'; b.dataset.x=x;
-      b.addEventListener('click', ()=>dropAndEat(b));
+      b.className='banana'; b.textContent='🍌'; b.style.left=(x-10)+'px'; b.style.top=y+'px'; b.dataset.x=x;
+      b.addEventListener('click',()=>dropAndEat(b));
       scene.appendChild(b);
     }
   }
@@ -104,7 +170,8 @@ function speak(txt){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis
 
       if(chewReady){
         monkey.classList.add('chew');
-        sprite.addEventListener('animationend', function onEnd(){ monkey.classList.remove('chew'); sprite.removeEventListener('animationend', onEnd); });
+        const onEnd=()=>{ monkey.classList.remove('chew'); sprite.removeEventListener('animationend',onEnd); };
+        sprite.addEventListener('animationend',onEnd);
       }
 
       count++; countTxt.textContent=`Count: ${count} / ${max}`;
@@ -116,7 +183,7 @@ function speak(txt){ try{ if(window.speechSynthesis && soundOn){ speechSynthesis
   }
 
   spawn();
-})();
-</script>
+}
+  </script>
 </body>
 </html>
