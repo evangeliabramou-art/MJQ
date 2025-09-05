@@ -28,46 +28,46 @@
   .chip.active{background:var(--chip-active)}
 
   /* === Poster menu card === */
-.poster-card{
-  max-width:980px;
-  margin:0 auto 28px;
-  padding:14px;
-  background:#fff;
-  border-radius:20px;
-  box-shadow:var(--shadow);
-}
+  .poster-card{
+    max-width:980px;
+    margin:0 auto 28px;
+    padding:14px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:var(--shadow);
+  }
 
-.poster-wrap{
-  position:relative;   /* <-- anchor for absolute hotspots */
-  border-radius:14px;
-  overflow:hidden;
-}
+  .poster-wrap{
+    position:relative;   /* anchor for absolute hotspots */
+    border-radius:14px;
+    overflow:hidden;
+  }
 
-.poster{ width:100%; display:block; user-select:none; -webkit-user-drag:none; }
+  .poster{ width:100%; display:block; user-select:none; -webkit-user-drag:none; }
 
-/* hotspots – absolute over the poster */
-.hotspot{
-  position:absolute;
-  border:0;
-  background:transparent;
-  cursor:pointer;
-  color:transparent;   /* hide text */
-  outline:none;
-  border-radius:50%;
-  z-index:2;           /* <— add this */
-}
-}
+  /* hotspots – absolute over the poster */
+  .hotspot{
+    position:absolute;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+    color:transparent;   /* hide text */
+    outline:none;
+    border-radius:50%;
+    z-index:2;
+  }
 
-/* tuned positions (you already used these numbers) */
-.hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
-.hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
-.hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
-.hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
-.hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
+  /* tuned positions */
+  .hs-banana{ left: 9%;  top: 42%; width: 26%; height: 15%; }
+  .hs-snake { right:9%;  top: 42%; width: 26%; height: 15%; }
+  .hs-memory{ left:14%;  top: 59%; width: 22%; height: 15%; }
+  .hs-puzzle{ left:39%;  top: 59%; width: 22%; height: 15%; }
+  .hs-hide  { left:64%;  top: 59%; width: 22%; height: 15%; }
 
-/* (optional) show boxes while aligning
-.debug .hotspot{ outline:2px solid rgba(0,160,255,.35); border-radius:16px; }
-*/
+  /* (optional) show boxes while aligning
+  .debug .hotspot{ outline:2px solid rgba(0,160,255,.35); border-radius:16px; }
+  */
+
   /* === Game area === */
   .card{
     max-width:980px;margin:0 auto 50px;background:#fff;border-radius:20px;
@@ -77,6 +77,7 @@
   .card p{margin:0;font-size:18px;color:#333}
 </style>
 </head>
+
 <!-- Add 'debug' to body to SEE hotspot boxes; remove it when aligned -->
 <body>
 
@@ -93,37 +94,46 @@
     </div>
   </div>
 
-<section class="poster-card" aria-label="Main menu">
-  <div class="poster-wrap">
-    <!-- use the actual file you uploaded: menu.PNG (case matters on GitHub Pages) -->
-    <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
+  <section class="poster-card" aria-label="Main menu">
+    <div class="poster-wrap">
+      <!-- case matters on GitHub Pages -->
+      <img class="poster" src="assets/images/menu.PNG" alt="Monkey’s Jungle Quest Menu">
 
-    <!-- hotspots -->
-    <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
-    <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
-    <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
-    <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
-    <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
-  </div>
-</section>
+      <!-- hotspots -->
+      <button class="hotspot hs-banana" aria-label="Banana Math" onclick="go('banana')">Banana</button>
+      <button class="hotspot hs-snake"  aria-label="Snake Game"  onclick="go('maze')">Snake</button>
+      <button class="hotspot hs-memory" aria-label="Memory Game"  onclick="go('memory')">Memory</button>
+      <button class="hotspot hs-puzzle" aria-label="Puzzle Game"  onclick="go('puzzle')">Puzzle</button>
+      <button class="hotspot hs-hide"   aria-label="Hide & Seek"  onclick="go('hide')">Hide</button>
+    </div>
+  </section>
 
   <div id="gameArea" class="card" role="region" aria-live="polite">
     <h2>Welcome!</h2>
     <p>Select a game above to start.</p>
   </div>
 
-  <!-- Your existing JS (kept) -->
+  <!-- optional: your animation file; safe if empty -->
   <script src="monkey_movement.js"></script>
 
   <script>
 /* =========================================================
-   UTILITIES
+   GLOBALS + HELPERS
 ========================================================= */
-const $ = (sel, root=document) => root.querySelector(sel);
+let currentAge = '2–4';
+let soundOn = false;
+
+const $  = (sel, root=document) => root.querySelector(sel);
 const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-const speak = (txt)=>{ try{ if(window.speechSynthesis && soundOn){
-   const u = new SpeechSynthesisUtterance(txt); speechSynthesis.speak(u);
-}}catch(e){} };
+
+const speak = (txt)=>{
+  try{
+    if(window.speechSynthesis && soundOn){
+      const u = new SpeechSynthesisUtterance(txt);
+      speechSynthesis.speak(u);
+    }
+  }catch(e){}
+};
 
 function makeCard(title, subtitle=''){
   return `
@@ -133,15 +143,45 @@ function makeCard(title, subtitle=''){
 }
 
 /* =========================================================
-   🍌 BANANA MATH
-   Count the bananas and choose the right number
+   UI CONTROLS
+========================================================= */
+function setAge(age, btn){
+  currentAge = age;
+  $$('.controls .chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // show a tiny toast inside game area
+  const ga = $('#gameArea');
+  ga.innerHTML = makeCard('Age changed', `Now playing: ${age}`);
+  speak(age==='2–4' ? 'Ages two to four' : 'Ages four to six');
+}
+
+function toggleSound(){
+  soundOn = !soundOn;
+  $('#soundBtn span').textContent = soundOn ? 'On' : 'Off';
+}
+
+function go(key){
+  const mount = $('#gameArea');
+  // route to the chosen game (same buttons but difficulty scales by age)
+  if(key==='banana')      startBanana(mount, currentAge);
+  else if(key==='maze')   startMaze(mount, currentAge);
+  else if(key==='memory') startMemory(mount, currentAge);
+  else if(key==='puzzle') startPuzzle(mount, currentAge);
+  else if(key==='hide')   startHideSeek(mount, currentAge);
+}
+
+/* =========================================================
+   🍌 BANANA MATH — Count the bananas
 ========================================================= */
 window.startBanana = function(mount, age){
   const max = (age==='4–6')? 12 : 6;
   const doRound = ()=>{
     const n = Math.floor(Math.random()*max)+1;
     const opts = new Set([n]);
-    while(opts.size<3){ opts.add( Math.max(1, Math.min(max, n + (Math.floor(Math.random()*5)-2))) );}
+    while(opts.size<3){
+      const delta = Math.floor(Math.random()*5)-2;
+      opts.add(Math.max(1, Math.min(max, n+delta)));
+    }
     const buttons = [...opts].sort((a,b)=>a-b).map(v =>
       `<button data-v="${v}" style="min-width:56px;margin:6px;padding:12px 14px;border:0;border-radius:12px;background:#ffd54f;font-weight:800;box-shadow:0 4px 10px rgba(0,0,0,.1)">${v}</button>`
     ).join('');
@@ -154,9 +194,8 @@ window.startBanana = function(mount, age){
     $$('#gameArea button').forEach(b=>{
       b.addEventListener('click', ()=>{
         const v = +b.dataset.v;
-        if(v===n){ $('#bananaMsg').textContent='Correct!'; speak('Correct!');
-          setTimeout(doRound, 800);
-        }else{ $('#bananaMsg').textContent='Try again'; speak('Try again'); }
+        if(v===n){ $('#bananaMsg').textContent='Correct!'; speak('Correct!'); setTimeout(doRound, 800); }
+        else     { $('#bananaMsg').textContent='Try again'; speak('Try again'); }
       });
     });
   };
@@ -164,19 +203,18 @@ window.startBanana = function(mount, age){
 };
 
 /* =========================================================
-   🐍 SNAKE MAZE
-   Reach the ⭐ without hitting walls
+   🐍 SNAKE MAZE — Reach the ⭐
 ========================================================= */
 window.startMaze = function(mount, age){
-  const size = (age==='4–6')? 11 : 9;       // grid size
-  const stepMs = 110;                       // tick speed
-  const cell = 28;                          // px
+  const size = (age==='4–6')? 11 : 9;  // grid size
+  const stepMs = 110;
+  const cell = 28;
   let head = {x:1, y:1};
   let goal = {x:size-2, y:size-2};
   let dir = {x:1,y:0};
   let playing = true;
 
-  // simple ring + a few blocks
+  // build grid with border walls
   const grid = Array.from({length:size},(_,y)=>
     Array.from({length:size},(_,x)=> (x===0||y===0||x===size-1||y===size-1)?1:0)
   );
@@ -234,10 +272,8 @@ window.startMaze = function(mount, age){
     setTimeout(tick, stepMs);
   }
   draw(); tick();
-  $$('#gameArea .d').forEach(b=>b.addEventListener('click',()=>{
-    dir={x: +b.dataset.x, y:+b.dataset.y};
-  }));
-  // swipe
+  $$('#gameArea .d').forEach(b=>b.addEventListener('click',()=>{ dir={x:+b.dataset.x, y:+b.dataset.y}; }));
+  // swipe on mobile
   let sx,sy;
   $('#maze').addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; });
   $('#maze').addEventListener('touchend',e=>{
@@ -288,12 +324,11 @@ window.startMemory = function(mount, age){
 };
 
 /* =========================================================
-   🧩 PUZZLE (3×2 for 2–4, 3×3 for 4–6) — drag to reorder
-   Uses background-position slices of the monkey image
+   🧩 PUZZLE (3×2 for 2–4, 3×3 for 4–6)
 ========================================================= */
 window.startPuzzle = function(mount, age){
   const rows = (age==='4–6')? 3 : 2;
-  const cols = (age==='4–6')? 3 : 3;
+  const cols = 3;
   const img = 'assets/images/monkey_sitting.PNG';
   const W = 300, H = rows===2? 240 : 300;
 
@@ -306,7 +341,7 @@ window.startPuzzle = function(mount, age){
     const i = r*cols+c;
     const div = document.createElement('div');
     div.className='t'; div.draggable=true; div.dataset.correct=i;
-    div.style.cssText=`width:${Math.floor((W-(cols-1)*6)/cols)}px;height:${Math.floor((H-(rows-1)*6)/rows)}px;border-radius:8px;background:#eee;background-image:url('${img}');background-size:${W}px ${H}px;background-position:${-c* (W/cols)}px ${-r*(H/rows)}px;box-shadow:0 4px 10px rgba(0,0,0,.12)`;
+    div.style.cssText=\`width:\${Math.floor((W-(cols-1)*6)/cols)}px;height:\${Math.floor((H-(rows-1)*6)/rows)}px;border-radius:8px;background:#eee;background-image:url('\${img}');background-size:\${W}px \${H}px;background-position:\${-c*(W/cols)}px \${-r*(H/rows)}px;box-shadow:0 4px 10px rgba(0,0,0,.12)\`;
     tiles.push(div);
   }
   tiles.sort(()=>Math.random()-0.5).forEach(el=>pz.appendChild(el));
@@ -343,7 +378,7 @@ window.startHideSeek = function(mount, age){
   for(let i=0;i<26;i++){
     const b = document.createElement('div');
     b.textContent='🌿';
-    b.style.cssText=`position:absolute;left:${Math.random()*280}px;top:${Math.random()*180}px;font-size:${20+Math.random()*16}px;opacity:.55`;
+    b.style.cssText=\`position:absolute;left:\${Math.random()*280}px;top:\${Math.random()*180}px;font-size:\${20+Math.random()*16}px;opacity:.55\`;
     f.appendChild(b);
   }
   // animals
@@ -356,13 +391,13 @@ window.startHideSeek = function(mount, age){
     el.addEventListener('click',()=>{
       el.style.opacity='.25';
       el.disabled=true;
-      found++; $('#foundTxt').textContent=`Found: ${found} / ${animals.length}`;
+      found++; $('#foundTxt').textContent=\`Found: \${found} / ${animals.length}\`;
       speak('Found one');
       if(found===animals.length){ speak('You found them all'); setTimeout(()=>alert('You found them all!'),100); }
     });
     f.appendChild(el);
   });
 };
-</script>
+  </script>
 </body>
 </html>
