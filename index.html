@@ -512,5 +512,53 @@ window.startHideSeek = function(mount, age){
   });
 };
   </script>
+<script>
+// ===== SAFETY PATCH (place right before </body>) =====
+
+// keep currentAge/soundOn if already defined
+window.currentAge = window.currentAge || '2–4';
+window.soundOn    = typeof window.soundOn === 'boolean' ? window.soundOn : false;
+
+// Fallback controls if missing
+window.setAge = window.setAge || function(age, btn){
+  window.currentAge = age;
+  try { document.querySelectorAll('.controls .chip').forEach(b=>b.classList.remove('active')); btn?.classList.add('active'); } catch(e){}
+  const ga = document.getElementById('gameArea');
+  if(ga) ga.innerHTML = `<h2>Age changed</h2><p>Now playing: ${age}</p>`;
+};
+
+window.toggleSound = window.toggleSound || function(){
+  window.soundOn = !window.soundOn;
+  try { document.querySelector('#soundBtn span').textContent = window.soundOn ? 'On' : 'Off'; } catch(e){}
+};
+
+// Simple speak helper if original missing
+window.speak = window.speak || function(txt){
+  try { if(window.speechSynthesis && window.soundOn){ speechSynthesis.speak(new SpeechSynthesisUtterance(txt)); } } catch(e){}
+};
+
+// Minimal Banana game if your new one didn't load
+window.startBanana = window.startBanana || function(mount, age){
+  if(!mount) mount = document.getElementById('gameArea');
+  mount.innerHTML = `
+    <h2>🍌 Banana Test</h2>
+    <p>If you see this, the button works. Age: ${age}</p>
+    <button id="bananaDemo">Add 1</button>
+    <p id="bananaCount">Count: 0</p>
+  `;
+  let c=0; document.getElementById('bananaDemo').onclick=()=>{ c++; document.getElementById('bananaCount').textContent='Count: '+c; speak(String(c)); };
+};
+
+// Router fallback
+window.go = window.go || function(key){
+  const mount = document.getElementById('gameArea');
+  if(key==='banana')      return window.startBanana(mount, window.currentAge);
+  if(key==='maze' || key==='memory' || key==='puzzle' || key==='hide'){
+    mount.innerHTML = `<h2>${key} (coming soon)</h2><p>Router works ✅</p>`;
+  } else {
+    mount.innerHTML = `<h2>Unknown route</h2>`;
+  }
+};
+</script>  
 </body>
 </html>
